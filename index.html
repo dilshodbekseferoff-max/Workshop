@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kassa Pro Ultra v15</title>
+    <title>Kassa Pro Ultra v16</title>
     
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     
@@ -61,6 +61,12 @@
         /* Modal */
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 1100; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 90%; padding: 25px; border-radius: 15px; box-sizing: border-box; }
+        
+        .export-option {
+            background: #eee; padding: 15px; margin: 10px 0; border-radius: 10px;
+            font-weight: bold; cursor: pointer; border: 1px solid #ddd;
+        }
+        .export-option:active { background: var(--main); color: white; }
     </style>
 </head>
 <body>
@@ -88,7 +94,7 @@
 
     <div id="historyPage" class="page">
         <h3 style="text-align:center">📜 Savdo Tarixi</h3>
-        <button class="btn" style="background: var(--edit); margin-bottom: 15px;" onclick="exportToExcel()">📥 Professional Excel Hisoboti</button>
+        <button class="btn" style="background: var(--edit); margin-bottom: 15px;" onclick="openModal('exportModal')">📥 Professional Excel Hisoboti</button>
         <div id="historyLogs"></div>
     </div>
 
@@ -98,6 +104,17 @@
             <input type="number" id="vaznField" placeholder="0.00 kg" step="0.01">
             <button class="btn" onclick="confirmWeight()">Savatga qo'shish</button>
             <button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('weightModal')">Yopish</button>
+        </div>
+    </div>
+
+    <div id="exportModal" class="modal">
+        <div class="modal-content" style="text-align:center">
+            <h3>Muddatni tanlang</h3>
+            <div class="export-option" onclick="exportByRange(1)">Bugun</div>
+            <div class="export-option" onclick="exportByRange(7)">Oxirgi 1 hafta</div>
+            <div class="export-option" onclick="exportByRange(30)">Oxirgi 1 oy</div>
+            <div class="export-option" onclick="exportByRange('all')">Umumiy tarix</div>
+            <button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Bekor qilish</button>
         </div>
     </div>
 
@@ -122,7 +139,7 @@
     let db, cart = [], selected = null;
     const formatMoney = n => n.toLocaleString('fr-FR').replace(/,/g, ' ');
 
-    const req = indexedDB.open("KassaDB_Professional_v15", 1);
+    const req = indexedDB.open("KassaDB_Professional_v16", 1);
     req.onupgradeneeded = e => {
         let d = e.target.result;
         d.createObjectStore("items", { keyPath: "name" });
@@ -184,7 +201,7 @@
 
     function confirmWeight() {
         let w = parseFloat(document.getElementById('vaznField').value); if(!w) return;
-        cart.push({ ...selected, weight: w, total: selected.price * w });
+        cart.push({ ...selected, weight: w, total: selected.price * w, timestamp: new Date().getTime() });
         document.getElementById('cartCount').innerText = cart.length; closeModal('weightModal'); document.getElementById('vaznField').value = '';
     }
 
@@ -196,7 +213,13 @@
 
     function finishSale() {
         let total = cart.reduce((a, b) => a + b.total, 0);
-        db.transaction("sales", "readwrite").objectStore("sales").add({ date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString(), items: [...cart], total: total });
+        db.transaction("sales", "readwrite").objectStore("sales").add({ 
+            date: new Date().toLocaleDateString(), 
+            time: new Date().toLocaleTimeString(), 
+            items: [...cart], 
+            total: total,
+            ts: new Date().getTime() 
+        });
         cart = []; document.getElementById('cartCount').innerText = "0"; closeModal('chekModal'); renderHistory(); alert("Saqlandi!");
     }
 
@@ -210,19 +233,25 @@
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 
-    // 🏆 MUKAMMAL EXCEL EKSPORT (GORIZONTAL + JAMI)
-    function exportToExcel() {
+    // 🏆 VAQT ORALIG'I BO'YICHA EXCEL EKSPORT
+    function exportByRange(days) {
+        closeModal('exportModal');
         db.transaction("sales").objectStore("sales").getAll().onsuccess = e => {
-            const sales = e.target.result;
-            if (!sales.length) return alert("Ma'lumot topilmadi!");
+            let sales = e.target.result;
+            const now = new Date().getTime();
+            
+            // Filtrlash
+            if(days !== 'all') {
+                const limit = days * 24 * 60 * 60 * 1000;
+                sales = sales.filter(s => (now - (s.ts || 0)) <= limit);
+            }
 
-            let data = [];
-            let merges = [];
-            let row1 = [], row2 = [];
-            let productBlocks = {};
+            if (!sales.length) return alert("Ushbu muddatda ma'lumot topilmadi!");
 
-            // 1. Guruhlash
+            let data = [], merges = [], row1 = [], row2 = [], productBlocks = {};
+
             sales.forEach(sale => {
                 sale.items.forEach(item => {
                     if (!productBlocks[item.name]) productBlocks[item.name] = [];
@@ -232,7 +261,6 @@
 
             let productNames = Object.keys(productBlocks);
             let maxRows = 0;
-            
             productNames.forEach((pName, index) => {
                 let startCol = index * 3;
                 row1[startCol] = pName;
@@ -243,7 +271,6 @@
 
             data.push(row1); data.push(row2);
 
-            // 2. Ma'lumotlarni yonma-yon qo'shish
             for (let r = 0; r < maxRows; r++) {
                 let row = [];
                 productNames.forEach((pName, index) => {
@@ -258,8 +285,7 @@
                 data.push(row);
             }
 
-            // 3. JAMI HISOB-KITOB QATORI
-            data.push([]); // Bo'sh qator
+            data.push([]); 
             let totalRow = [];
             productNames.forEach((pName, index) => {
                 let startCol = index * 3;
@@ -271,13 +297,12 @@
             });
             data.push(totalRow);
 
-            // Excel yaratish
             const ws = XLSX.utils.aoa_to_sheet(data);
             ws['!merges'] = merges;
             ws['!cols'] = row2.map(() => ({ wch: 18 }));
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
-            XLSX.writeFile(wb, `Kassa_Hisobot_${new Date().toLocaleDateString()}.xlsx`);
+            XLSX.writeFile(wb, `Kassa_Hisobot_${days}_kunlik.xlsx`);
         };
     }
 </script>
