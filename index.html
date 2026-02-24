@@ -3,143 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kassa Pro Ultra v16</title>
-    
+    <title>Kassa Pro Stable v22</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    
     <style>
-        :root { --main: #27ae60; --bg: #f4f7f6; --dark: #2c3e50; --danger: #e74c3c; --edit: #f39c12; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
         
+        :root { 
+            --main: #10b981; --bg: #f8fafc; --dark: #1e293b; 
+            --danger: #ef4444; --edit: #f59e0b; --card: #ffffff;
+        }
+
         body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
-            padding-bottom: 160px; 
-            user-select: none;
+            font-family: 'Inter', sans-serif; background: var(--bg); 
+            margin: 0; padding-bottom: 160px; color: var(--dark);
+            overflow-x: hidden;
         }
 
         /* Sahifalar */
-        .page { display: none; padding: 15px; animation: fadeIn 0.2s; }
-        .active-page { display: block; }
+        .page { display: none; padding: 20px; box-sizing: border-box; }
+        .active-page { display: block; animation: fadeIn 0.2s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Grid Dizayn */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        /* Sotuv Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .prod-card { 
-            background: white; padding: 20px 10px; border-radius: 12px; 
-            text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid #eee; height: 110px; display: flex;
-            flex-direction: column; justify-content: center; box-sizing: border-box;
+            background: var(--card); padding: 18px 12px; border-radius: 16px; 
+            text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #e2e8f0; transition: 0.1s;
         }
-        .prod-card:active { transform: scale(0.95); background: #f9f9f9; }
-        .prod-name { font-weight: bold; font-size: 18px; color: var(--dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .prod-price { color: var(--main); font-weight: 800; font-size: 17px; margin-top: 5px; }
+        .prod-card:active { transform: scale(0.95); background: #f1f5f9; }
+        .prod-name { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+        .prod-price { color: var(--main); font-weight: 800; }
 
-        /* Tugmalar va Navigatsiya */
-        .floating-pay-btn {
-            position: fixed; bottom: 85px; left: 5%; width: 90%; height: 60px;
-            background: var(--dark); color: white; border-radius: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            border: none; z-index: 999; box-sizing: border-box; font-size: 16px;
-        }
+        /* Qat'iy Navigatsiya va To'lov Tugmasi */
         .nav { 
-            position: fixed; bottom: 0; width: 100%; height: 70px;
-            background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
+            position: fixed; bottom: 0; width: 100%; height: 75px;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            display: flex; border-top: 1px solid #e2e8f0; z-index: 1000;
         }
         .nav-item { 
             flex: 1; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; font-weight: bold; color: #7f8c8d; font-size: 13px;
+            justify-content: center; font-weight: 600; color: #94a3b8; font-size: 11px;
         }
-        .nav-active { color: var(--main); border-top: 4px solid var(--main); background: #fafafa; }
+        .nav-active { color: var(--main); }
 
-        /* Elementlar */
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 18px; box-sizing: border-box; }
-        .btn { background: var(--main); color: white; border: none; padding: 15px; border-radius: 10px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .list-item { display: flex; justify-content: space-between; background: white; padding: 15px; margin-bottom: 8px; border-radius: 10px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .floating-pay-btn {
+            position: fixed; bottom: 90px; left: 20px; right: 20px; height: 55px;
+            background: var(--dark); color: white; border-radius: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); 
+            border: none; z-index: 999; transition: transform 0.3s, opacity 0.3s;
+        }
+        .hidden-btn { transform: translateY(150px); opacity: 0; pointer-events: none; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index: 1100; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 90%; padding: 25px; border-radius: 15px; box-sizing: border-box; }
+        /* Chek va Listlar */
+        .receipt { font-family: 'Courier New', monospace; padding: 10px; }
+        .receipt-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .receipt-total { border-top: 1px dashed #000; margin-top: 10px; padding-top: 10px; font-weight: bold; font-size: 20px; text-align: right; }
         
-        .export-option {
-            background: #eee; padding: 15px; margin: 10px 0; border-radius: 10px;
-            font-weight: bold; cursor: pointer; border: 1px solid #ddd;
-        }
-        .export-option:active { background: var(--main); color: white; }
+        .btn { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index: 1100; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 92%; padding: 25px; border-radius: 24px; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+        
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--main); }
+        .list-item { display: flex; justify-content: space-between; background: white; padding: 16px; margin-bottom: 10px; border-radius: 16px; border: 1px solid #f1f5f9; align-items: center; }
     </style>
 </head>
 <body>
 
     <div id="salePage" class="page active-page">
-        <h2 style="text-align:center; color: var(--dark);">🛒 Savdo Terminali</h2>
+        <h2 style="margin-top:0">Savdo 🛒</h2>
         <div id="productGrid" class="grid"></div>
-        <button class="floating-pay-btn" onclick="showReceipt()">
-            <span>Savatda: <b id="cartCount">0</b> ta</span>
-            <span>💰 YAKUNLASH</span>
-        </button>
     </div>
 
     <div id="prodPage" class="page">
-        <h3 style="text-align:center" id="prodFormTitle">📦 Mahsulot Qo'shish</h3>
-        <div style="background: white; padding: 15px; border-radius: 15px;">
+        <h2>Ombor 📦</h2>
+        <div style="background: white; padding: 18px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
             <input type="hidden" id="editOldName">
             <input type="text" id="pName" placeholder="Mahsulot nomi">
-            <input type="number" id="pPrice" placeholder="Narxi (1 kg)">
-            <button class="btn" onclick="saveProduct()">✅ Saqlash</button>
-            <button id="cancelBtn" class="btn" style="background:#95a5a6; margin-top:5px; display:none;" onclick="resetForm()">Bekor qilish</button>
+            <input type="number" id="pPrice" placeholder="Narxi (so'm)">
+            <button class="btn" onclick="saveProduct()">Saqlash</button>
+            <button id="cancelBtn" class="btn" style="background:#94a3b8; margin-top:5px; display:none;" onclick="resetForm()">Bekor qilish</button>
         </div>
-        <div id="inventoryList" style="margin-top:20px;"></div>
+        <div id="inventoryList"></div>
     </div>
 
     <div id="historyPage" class="page">
-        <h3 style="text-align:center">📜 Savdo Tarixi</h3>
-        <button class="btn" style="background: var(--edit); margin-bottom: 15px;" onclick="openModal('exportModal')">📥 Professional Excel Hisoboti</button>
+        <h2>Tarix 📜</h2>
+        <div style="background: white; padding: 18px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+            <button class="btn" style="background:#3b82f6; margin-bottom: 10px;" onclick="openModal('exportModal')">📥 Excelga Yuklab Olish</button>
+            <button class="btn" style="background:var(--danger);" onclick="clearAllData()">🗑 Tarixni Tozalash</button>
+        </div>
         <div id="historyLogs"></div>
     </div>
 
-    <div id="weightModal" class="modal">
-        <div class="modal-content" style="text-align:center">
-            <h3 id="selectedName"></h3>
-            <input type="number" id="vaznField" placeholder="0.00 kg" step="0.01">
-            <button class="btn" onclick="confirmWeight()">Savatga qo'shish</button>
-            <button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('weightModal')">Yopish</button>
-        </div>
-    </div>
-
-    <div id="exportModal" class="modal">
-        <div class="modal-content" style="text-align:center">
-            <h3>Muddatni tanlang</h3>
-            <div class="export-option" onclick="exportByRange(1)">Bugun</div>
-            <div class="export-option" onclick="exportByRange(7)">Oxirgi 1 hafta</div>
-            <div class="export-option" onclick="exportByRange(30)">Oxirgi 1 oy</div>
-            <div class="export-option" onclick="exportByRange('all')">Umumiy tarix</div>
-            <button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Bekor qilish</button>
-        </div>
-    </div>
-
-    <div id="chekModal" class="modal">
-        <div class="modal-content">
-            <center><h3>XARID CHEKI</h3></center>
-            <div id="chekItems" style="max-height: 250px; overflow-y: auto; font-family: monospace; margin: 15px 0;"></div>
-            <hr>
-            <div style="text-align:right; font-weight:bold; font-size:22px;">JAMI: <span id="chekTotal" style="color:var(--danger)"></span></div>
-            <button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ Tasdiqlash</button>
-            <button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">Yopish</button>
-        </div>
-    </div>
+    <button id="mainPayBtn" class="floating-pay-btn" onclick="showReceipt()">
+        <span>Savat: <b id="cartCount">0</b></span>
+        <span>TO'LOV ➔</span>
+    </button>
 
     <div class="nav">
-        <div class="nav-item nav-active" onclick="openTab('salePage', this)">🛒<span>SOTUV</span></div>
-        <div class="nav-item" onclick="openTab('prodPage', this)">📦<span>OMBOR</span></div>
-        <div class="nav-item" onclick="openTab('historyPage', this)">📜<span>TARIX</span></div>
+        <div class="nav-item nav-active" id="nav-sale" onclick="openTab('salePage', this)"><span>SOTUV</span></div>
+        <div class="nav-item" id="nav-prod" onclick="openTab('prodPage', this)"><span>OMBOR</span></div>
+        <div class="nav-item" id="nav-hist" onclick="openTab('historyPage', this)"><span>TARIX</span></div>
     </div>
+
+    <div id="weightModal" class="modal"><div class="modal-content" style="text-align:center"><h3 id="selectedName"></h3><input type="number" id="vaznField" placeholder="0.00 kg" step="0.01"><button class="btn" onclick="confirmWeight()">Savatga qo'shish</button><button class="btn" style="background:#f1f5f9; color: #475569; margin-top:10px;" onclick="closeModal('weightModal')">Bekor qilish</button></div></div>
+    <div id="exportModal" class="modal"><div class="modal-content"><h3>Eksport oralig'i</h3><button class="btn" onclick="exportByRange(1)" style="margin-bottom:10px">Bugun</button><button class="btn" onclick="exportByRange('all')" style="background:var(--dark)">Barcha tarix</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Yopish</button></div></div>
+    <div id="chekModal" class="modal"><div class="modal-content receipt"><div class="receipt-header">XARID CHEKI<br>*** BOZOR KASSA ***</div><div id="chekItems"></div><div class="receipt-total">JAMI: <span id="chekTotal"></span></div><div style="text-align:center; font-size:11px; margin-top:15px; border-top:1px solid #eee; padding-top:10px;"><div id="chekDateTime"></div><p>Rahmat!</p></div><button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ Tasdiqlash</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">Yopish</button></div></div>
 
 <script>
     let db, cart = [], selected = null;
-    const formatMoney = n => n.toLocaleString('fr-FR').replace(/,/g, ' ');
+    const formatMoney = n => new Intl.NumberFormat('uz-UZ').format(n) + " so'm";
 
-    const req = indexedDB.open("KassaDB_Professional_v16", 1);
+    const req = indexedDB.open("KassaDB_V22", 1);
     req.onupgradeneeded = e => {
         let d = e.target.result;
         d.createObjectStore("items", { keyPath: "name" });
@@ -147,162 +126,107 @@
     };
     req.onsuccess = e => { db = e.target.result; renderGrid(); renderInventory(); renderHistory(); };
 
-    function openTab(tabId, el) {
+    function openTab(t, el) { 
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
-        document.getElementById(tabId).classList.add('active-page');
+        document.getElementById(t).classList.add('active-page'); 
         el.classList.add('nav-active');
-    }
 
-    function saveProduct() {
-        let name = document.getElementById('pName').value, price = parseFloat(document.getElementById('pPrice').value), old = document.getElementById('editOldName').value;
-        if(!name || !price) return;
-        let tx = db.transaction("items", "readwrite"), store = tx.objectStore("items");
-        if(old && old !== name) store.delete(old);
-        store.put({ name, price });
-        tx.oncomplete = () => { resetForm(); renderGrid(); renderInventory(); };
-    }
-
-    function editItem(name, price) {
-        document.getElementById('pName').value = name; document.getElementById('pPrice').value = price;
-        document.getElementById('editOldName').value = name; document.getElementById('prodFormTitle').innerText = "✏️ Tahrirlash";
-        document.getElementById('cancelBtn').style.display = 'block'; window.scrollTo(0,0);
-    }
-
-    function resetForm() {
-        document.getElementById('pName').value = ''; document.getElementById('pPrice').value = '';
-        document.getElementById('editOldName').value = ''; document.getElementById('prodFormTitle').innerText = "📦 Mahsulot Qo'shish";
-        document.getElementById('cancelBtn').style.display = 'none';
-    }
-
-    function renderInventory() {
-        const list = document.getElementById('inventoryList'); list.innerHTML = '';
-        db.transaction("items").objectStore("items").getAll().onsuccess = e => {
-            e.target.result.forEach(p => {
-                list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small>${formatMoney(p.price)}</small></span>
-                <div><button onclick="editItem('${p.name}', ${p.price})" style="background:var(--edit); color:white; border:none; padding:10px; border-radius:8px;">✏️</button>
-                <button onclick="deleteItem('${p.name}')" style="background:var(--danger); color:white; border:none; padding:10px; border-radius:8px; margin-left:5px;">🗑</button></div></div>`;
-            });
-        };
-    }
-
-    function deleteItem(name) { if(confirm("O'chirilsinmi?")) { db.transaction("items", "readwrite").objectStore("items").delete(name); renderGrid(); renderInventory(); } }
-
-    function renderGrid() {
-        const grid = document.getElementById('productGrid'); grid.innerHTML = '';
-        db.transaction("items").objectStore("items").getAll().onsuccess = e => {
-            e.target.result.forEach(p => {
-                grid.innerHTML += `<div class="prod-card" onclick="openWeight('${p.name}', ${p.price})"><div class="prod-name">${p.name}</div><div class="prod-price">${formatMoney(p.price)}</div></div>`;
-            });
-        };
-    }
-
-    function openWeight(name, price) { selected = { name, price }; document.getElementById('selectedName').innerText = name; document.getElementById('weightModal').style.display = 'flex'; document.getElementById('vaznField').focus(); }
-
-    function confirmWeight() {
-        let w = parseFloat(document.getElementById('vaznField').value); if(!w) return;
-        cart.push({ ...selected, weight: w, total: selected.price * w, timestamp: new Date().getTime() });
-        document.getElementById('cartCount').innerText = cart.length; closeModal('weightModal'); document.getElementById('vaznField').value = '';
-    }
-
-    function showReceipt() {
-        if(!cart.length) return; let total = 0;
-        let html = cart.map(i => { total += i.total; return `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${i.name} (${i.weight}kg)</span><b>${formatMoney(i.total)}</b></div>`; }).join('');
-        document.getElementById('chekItems').innerHTML = html; document.getElementById('chekTotal').innerText = formatMoney(total) + " so'm"; document.getElementById('chekModal').style.display = 'flex';
-    }
-
-    function finishSale() {
-        let total = cart.reduce((a, b) => a + b.total, 0);
-        db.transaction("sales", "readwrite").objectStore("sales").add({ 
-            date: new Date().toLocaleDateString(), 
-            time: new Date().toLocaleTimeString(), 
-            items: [...cart], 
-            total: total,
-            ts: new Date().getTime() 
-        });
-        cart = []; document.getElementById('cartCount').innerText = "0"; closeModal('chekModal'); renderHistory(); alert("Saqlandi!");
-    }
-
-    function renderHistory() {
-        const logs = document.getElementById('historyLogs'); logs.innerHTML = '';
-        db.transaction("sales").objectStore("sales").getAll().onsuccess = e => {
-            e.target.result.reverse().forEach(h => {
-                logs.innerHTML += `<div class="list-item" style="border-left:5px solid var(--main)"><small>${h.date} ${h.time}</small><b>${formatMoney(h.total)} so'm</b></div>`;
-            });
-        };
+        // To'lov tugmasini boshqarish (Faqat Sotuv sahifasida ko'rinsin)
+        const payBtn = document.getElementById('mainPayBtn');
+        if(t === 'salePage') payBtn.classList.remove('hidden-btn');
+        else payBtn.classList.add('hidden-btn');
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 
-    // 🏆 VAQT ORALIG'I BO'YICHA EXCEL EKSPORT
+    // Boshqa barcha funksiyalar (saveProduct, renderInventory, renderGrid, etc.) o'z holicha qoladi...
+    function saveProduct() {
+        let n = document.getElementById('pName').value, p = parseFloat(document.getElementById('pPrice').value), old = document.getElementById('editOldName').value;
+        if(!n || !p) return;
+        let tx = db.transaction("items", "readwrite");
+        if(old && old !== n) tx.objectStore("items").delete(old);
+        tx.objectStore("items").put({ name: n, price: p });
+        tx.oncomplete = () => { resetForm(); renderGrid(); renderInventory(); };
+    }
+
+    function renderInventory() {
+        const list = document.getElementById('inventoryList'); list.innerHTML = '';
+        db.transaction("items").objectStore("items").getAll().onsuccess = e => {
+            e.target.result.forEach(p => { 
+                list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small style="color:var(--main)">${formatMoney(p.price)}</small></span>
+                <div><button onclick="editItem('${p.name}', ${p.price})" style="background:var(--edit); color:white; border:none; padding:8px 12px; border-radius:8px;">✏️</button>
+                <button onclick="deleteItem('${p.name}')" style="background:var(--danger); color:white; border:none; padding:8px 12px; border-radius:8px; margin-left:5px;">🗑</button></div></div>`;
+            });
+        };
+    }
+
+    function editItem(n, p) { document.getElementById('pName').value = n; document.getElementById('pPrice').value = p; document.getElementById('editOldName').value = n; document.getElementById('cancelBtn').style.display = 'block'; window.scrollTo(0,0); }
+    function resetForm() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('editOldName').value = ''; document.getElementById('cancelBtn').style.display = 'none'; }
+    function deleteItem(n) { if(confirm("O'chirilsinmi?")) { db.transaction("items", "readwrite").objectStore("items").delete(n); renderGrid(); renderInventory(); } }
+
+    function renderGrid() {
+        const grid = document.getElementById('productGrid'); grid.innerHTML = '';
+        db.transaction("items").objectStore("items").getAll().onsuccess = e => {
+            e.target.result.forEach(p => { 
+                grid.innerHTML += `<div class="prod-card" onclick="openWeight('${p.name}', ${p.price})"><div class="prod-name">${p.name}</div><div class="prod-price">${new Intl.NumberFormat('uz-UZ').format(p.price)}</div></div>`;
+            });
+        };
+    }
+
+    function openWeight(n, p) { selected = { name: n, price: p }; document.getElementById('selectedName').innerText = n; openModal('weightModal'); document.getElementById('vaznField').focus(); }
+    function confirmWeight() { let w = parseFloat(document.getElementById('vaznField').value); if(!w) return; cart.push({ ...selected, weight: w, total: Math.round(selected.price * w) }); document.getElementById('cartCount').innerText = cart.length; closeModal('weightModal'); document.getElementById('vaznField').value = ''; }
+    
+    function showReceipt() {
+        if(!cart.length) return;
+        let t = 0;
+        let html = cart.map(i => { t += i.total; return `<div class="receipt-row"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`; }).join('');
+        document.getElementById('chekItems').innerHTML = html;
+        document.getElementById('chekTotal').innerText = t.toLocaleString() + " so'm";
+        document.getElementById('chekDateTime').innerText = new Date().toLocaleString('uz-UZ');
+        openModal('chekModal');
+    }
+
+    function finishSale() {
+        let t = cart.reduce((a, b) => a + b.total, 0);
+        db.transaction("sales", "readwrite").objectStore("sales").add({ 
+            date: new Date().toLocaleDateString('uz-UZ'), 
+            time: new Date().toLocaleTimeString('uz-UZ'), 
+            items: [...cart], total: t, ts: Date.now() 
+        });
+        cart = []; document.getElementById('cartCount').innerText = "0";
+        closeModal('chekModal'); renderHistory();
+    }
+
+    function renderHistory() {
+        const logs = document.getElementById('historyLogs'); logs.innerHTML = '';
+        db.transaction("sales").objectStore("sales").getAll().onsuccess = e => { 
+            e.target.result.reverse().slice(0, 30).forEach(h => { 
+                logs.innerHTML += `<div class="list-item" style="border-left:5px solid var(--main)"><small>${h.date} ${h.time}</small><b>${h.total.toLocaleString()} so'm</b></div>`; 
+            }); 
+        };
+    }
+
+    function clearAllData() { if(confirm("Barcha tarix o'chirilsinmi?")) { db.transaction("sales", "readwrite").objectStore("sales").clear(); renderHistory(); } }
+
     function exportByRange(days) {
         closeModal('exportModal');
         db.transaction("sales").objectStore("sales").getAll().onsuccess = e => {
             let sales = e.target.result;
-            const now = new Date().getTime();
-            
-            // Filtrlash
-            if(days !== 'all') {
-                const limit = days * 24 * 60 * 60 * 1000;
-                sales = sales.filter(s => (now - (s.ts || 0)) <= limit);
-            }
-
-            if (!sales.length) return alert("Ushbu muddatda ma'lumot topilmadi!");
-
-            let data = [], merges = [], row1 = [], row2 = [], productBlocks = {};
-
-            sales.forEach(sale => {
-                sale.items.forEach(item => {
-                    if (!productBlocks[item.name]) productBlocks[item.name] = [];
-                    productBlocks[item.name].push({ time: sale.date + " " + sale.time, weight: item.weight, total: item.total });
-                });
-            });
-
-            let productNames = Object.keys(productBlocks);
-            let maxRows = 0;
-            productNames.forEach((pName, index) => {
-                let startCol = index * 3;
-                row1[startCol] = pName;
-                merges.push({ s: { r: 0, c: startCol }, e: { r: 0, c: startCol + 2 } });
-                row2[startCol] = "Vaqt"; row2[startCol+1] = "Vazn (kg)"; row2[startCol+2] = "Summa (so'm)";
-                if (productBlocks[pName].length > maxRows) maxRows = productBlocks[pName].length;
-            });
-
-            data.push(row1); data.push(row2);
-
-            for (let r = 0; r < maxRows; r++) {
-                let row = [];
-                productNames.forEach((pName, index) => {
-                    let startCol = index * 3;
-                    let itemData = productBlocks[pName][r];
-                    if (itemData) {
-                        row[startCol] = itemData.time;
-                        row[startCol + 1] = itemData.weight;
-                        row[startCol + 2] = itemData.total;
-                    }
-                });
-                data.push(row);
-            }
-
-            data.push([]); 
-            let totalRow = [];
-            productNames.forEach((pName, index) => {
-                let startCol = index * 3;
-                let tWeight = productBlocks[pName].reduce((s, i) => s + i.weight, 0);
-                let tSum = productBlocks[pName].reduce((s, i) => s + i.total, 0);
-                totalRow[startCol] = "JAMI:";
-                totalRow[startCol+1] = tWeight.toFixed(2);
-                totalRow[startCol+2] = tSum;
-            });
-            data.push(totalRow);
-
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            ws['!merges'] = merges;
-            ws['!cols'] = row2.map(() => ({ wch: 18 }));
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
-            XLSX.writeFile(wb, `Kassa_Hisobot_${days}_kunlik.xlsx`);
+            if(days !== 'all') sales = sales.filter(s => (Date.now() - s.ts) <= 86400000);
+            if(!sales.length) return alert("Hujjat bo'sh!");
+            let data = [], merges = [], row1 = [], row2 = [], blocks = {};
+            sales.forEach(s => s.items.forEach(i => { if(!blocks[i.name]) blocks[i.name]=[]; blocks[i.name].push({t: s.date+" "+s.time, w: i.weight, s: i.total}); }));
+            let names = Object.keys(blocks); let maxR = 0;
+            names.forEach((n, i) => { let c=i*3; row1[c]=n; merges.push({s:{r:0,c:c},e:{r:0,c:c+2}}); row2[c]="Vaqt"; row2[c+1]="Vazn"; row2[c+2]="Summa"; maxR = Math.max(maxR, blocks[n].length); });
+            data.push(row1, row2);
+            for(let r=0; r<maxR; r++) { let row=[]; names.forEach((n,i)=>{ let c=i*3; if(blocks[n][r]){ row[c]=blocks[n][r].t; row[c+1]=blocks[n][r].w; row[c+2]=blocks[n][r].s; } }); data.push(row); }
+            let tr = []; names.forEach((n,i)=>{ let c=i*3; tr[c]="JAMI:"; tr[c+1]=parseFloat(blocks[n].reduce((a,b)=>a+b.w,0).toFixed(2)); tr[c+2]=blocks[n].reduce((a,b)=>a+b.s,0); });
+            data.push([], tr);
+            const ws = XLSX.utils.aoa_to_sheet(data); ws['!merges']=merges; ws['!cols']=row2.map(()=>({wch:20}));
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
+            XLSX.writeFile(wb, `Hisobot_${new Date().toLocaleDateString()}.xlsx`);
         };
     }
 </script>
