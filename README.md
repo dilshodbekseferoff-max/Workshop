@@ -1,0 +1,1 @@
+Universal savdo kassa aparati
