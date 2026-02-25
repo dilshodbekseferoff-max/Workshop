@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kassa Pro Elite v29</title>
+    <title>Kassa Pro Elite v30</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -13,7 +13,8 @@
         .active-page { display: block; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .prod-card { background: #fff; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; transition: 0.1s; }
+        .prod-card { background: #fff; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; transition: 0.1s; cursor: pointer; }
+        .prod-card:active { transform: scale(0.95); }
         .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #fff; display: flex; border-top: 1px solid #e2e8f0; z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; color: #94a3b8; font-size: 11px; }
         .nav-active { color: var(--main); }
@@ -25,7 +26,7 @@
         .modal-content { background: white; width: 92%; padding: 25px; border-radius: 24px; max-height: 85vh; overflow-y: auto; }
         .btn { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
         .list-item { display: flex; justify-content: space-between; background: white; padding: 16px; margin-bottom: 10px; border-radius: 16px; border: 1px solid #f1f5f9; align-items: center; }
-        .edit-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 8px; margin-left: 5px; }
+        .edit-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 8px; margin-left: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -74,9 +75,7 @@
 
     <div id="weightModal" class="modal"><div class="modal-content" style="text-align:center"><h3 id="selectedName"></h3><input type="number" id="vaznField" style="width:100%; padding:15px; font-size:22px; border-radius:12px; border:1px solid #ddd;" placeholder="0.00 kg" step="0.01"><button class="btn" style="margin-top:15px" onclick="confirmWeight()">TASDIQLASH</button><button class="btn" style="background:#f1f5f9; color:#444; margin-top:10px;" onclick="closeModal('weightModal')">BEKOR</button></div></div>
     <div id="cartModal" class="modal"><div class="modal-content"><h3 style="margin-top:0">Savat 🛒</h3><div id="cartItemsList"></div><button class="btn" style="margin-top:20px" onclick="closeModal('cartModal')">YOPISH</button></div></div>
-    
     <div id="viewChekModal" class="modal"><div class="modal-content"><div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:10px; margin-bottom:10px;"><b>ARXIV CHEK</b></div><div id="viewChekItems"></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="viewChekTotal"></span></div><button class="btn" style="margin-top:20px; background:var(--dark)" onclick="closeModal('viewChekModal')">YOPISH</button></div></div>
-
     <div id="chekModal" class="modal"><div class="modal-content"><div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:10px; margin-bottom:10px;"><b>XARID CHEKI</b></div><div id="chekItems"></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="chekTotal"></span></div><button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ TASDIQLASH</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">BEKOR</button></div></div>
     <div id="exportModal" class="modal"><div class="modal-content"><h3>Eksport oralig'i</h3><button class="btn" onclick="exportByRange(1)" style="margin-bottom:10px">Bugun (Excel)</button><button class="btn" onclick="exportByRange('all')" style="background:var(--dark)">Hammasi (Excel)</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Yopish</button></div></div>
 
@@ -84,13 +83,40 @@
     let db, cart = [], selected = null, currentSort = 'time', editIndex = null;
     const formatMoney = n => new Intl.NumberFormat('uz-UZ').format(n) + " so'm";
 
-    const req = indexedDB.open("KassaDB_V29", 1);
+    // Standart mahsulotlar ro'yxati
+    const defaultProducts = [
+        { name: "Qizil", price: 108000 },
+        { name: "Yaltiroq", price: 115000 },
+        { name: "Lotun", price: 57000 },
+        { name: "Lotun zavod", price: 60000 },
+        { name: "Alumin", price: 16000 },
+        { name: "Alumin sim", price: 26000 }
+    ];
+
+    const req = indexedDB.open("KassaDB_V30", 1);
     req.onupgradeneeded = e => {
         let d = e.target.result;
         d.createObjectStore("items", { keyPath: "name" });
         d.createObjectStore("sales", { keyPath: "id", autoIncrement: true });
     };
-    req.onsuccess = e => { db = e.target.result; renderGrid(); renderInventory(); renderHistory(); };
+    req.onsuccess = e => { 
+        db = e.target.result; 
+        initDefaultProducts();
+    };
+
+    function initDefaultProducts() {
+        let tx = db.transaction("items", "readwrite");
+        let store = tx.objectStore("items");
+        store.count().onsuccess = e => {
+            if(e.target.result === 0) {
+                // Agar baza bo'sh bo'lsa, standartlarni qo'shish
+                defaultProducts.forEach(p => store.add(p));
+                tx.oncomplete = () => { renderGrid(); renderInventory(); renderHistory(); };
+            } else {
+                renderGrid(); renderInventory(); renderHistory();
+            }
+        };
+    }
 
     function openTab(t, el) { 
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
@@ -154,7 +180,6 @@
 
     // ANALITIKA & TARIX
     function setSort(s) { currentSort = s; renderHistory(); }
-    
     function renderHistory() {
         const logs = document.getElementById('historyLogs'); logs.innerHTML = '';
         db.transaction("sales").objectStore("sales").getAll().onsuccess = e => { 
@@ -178,18 +203,12 @@
             }
         };
     }
-
     function viewOldSale(items, total) {
         document.getElementById('viewChekItems').innerHTML = items.map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`).join('');
         document.getElementById('viewChekTotal').innerText = total.toLocaleString() + " so'm";
         openModal('viewChekModal');
     }
-
-    function deleteSale(id) {
-        if(confirm("Ushbu chek o'chirilsinmi?")) {
-            db.transaction("sales", "readwrite").objectStore("sales").delete(id).onsuccess = () => renderHistory();
-        }
-    }
+    function deleteSale(id) { if(confirm("Ushbu chek o'chirilsinmi?")) { db.transaction("sales", "readwrite").objectStore("sales").delete(id).onsuccess = () => renderHistory(); } }
 
     function exportByRange(days) {
         closeModal('exportModal');
@@ -197,50 +216,26 @@
             let sales = e.target.result;
             if(days !== 'all') sales = sales.filter(s => (Date.now() - s.ts) <= 86400000);
             if(!sales.length) return alert("Ma'lumot yo'q!");
-
             let data = [], merges = [], row1 = [], row2 = [], blocks = {};
-            sales.forEach(s => s.items.forEach(i => {
-                if(!blocks[i.name]) blocks[i.name] = [];
-                blocks[i.name].push({t: s.date+" "+s.time, w: i.weight, s: i.total});
-            }));
-
-            let names = Object.keys(blocks);
-            let maxRows = 0;
+            sales.forEach(s => s.items.forEach(i => { if(!blocks[i.name]) blocks[i.name] = []; blocks[i.name].push({t: s.date+" "+s.time, w: i.weight, s: i.total}); }));
+            let names = Object.keys(blocks); let maxRows = 0;
             names.forEach((n, i) => {
-                let col = i * 3;
-                row1[col] = n;
-                merges.push({s:{r:0, c:col}, e:{r:0, c:col+2}});
+                let col = i * 3; row1[col] = n; merges.push({s:{r:0, c:col}, e:{r:0, c:col+2}});
                 row2[col] = "Vaqt"; row2[col+1] = "Vazn"; row2[col+2] = "Summa";
                 maxRows = Math.max(maxRows, blocks[n].length);
             });
-
             data.push(row1, row2);
             for(let r=0; r<maxRows; r++) {
-                let row = [];
-                names.forEach((n, i) => {
-                    let col = i * 3;
-                    if(blocks[n][r]) {
-                        row[col] = blocks[n][r].t;
-                        row[col+1] = blocks[n][r].w;
-                        row[col+2] = blocks[n][r].s;
-                    }
-                });
+                let row = []; names.forEach((n, i) => { let col = i * 3; if(blocks[n][r]) { row[col] = blocks[n][r].t; row[col+1] = blocks[n][r].w; row[col+2] = blocks[n][r].s; } });
                 data.push(row);
             }
-
-            let totalRow = [];
-            names.forEach((n, i) => {
-                let col = i * 3;
-                let totalW = blocks[n].reduce((sum, item) => sum + item.w, 0);
-                let totalS = blocks[n].reduce((sum, item) => sum + item.s, 0);
+            let totalRow = []; names.forEach((n, i) => {
+                let col = i * 3; let totalW = blocks[n].reduce((sum, item) => sum + item.w, 0); let totalS = blocks[n].reduce((sum, item) => sum + item.s, 0);
                 totalRow[col] = "JAMI:"; totalRow[col+1] = totalW.toFixed(2); totalRow[col+2] = totalS;
             });
             data.push(totalRow);
-
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            ws['!merges'] = merges;
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
+            const ws = XLSX.utils.aoa_to_sheet(data); ws['!merges'] = merges;
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
             XLSX.writeFile(wb, `Kassa_Hisobot_${new Date().toLocaleDateString()}.xlsx`);
         };
     }
@@ -264,7 +259,7 @@
     }
     function editItem(n, p) { document.getElementById('pName').value = n; document.getElementById('pPrice').value = p; document.getElementById('editOldName').value = n; document.getElementById('cancelBtn').style.display = 'block'; window.scrollTo(0,0); }
     function resetForm() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('editOldName').value = ''; document.getElementById('cancelBtn').style.display = 'none'; }
-    function deleteItem(n) { if(confirm("O'chirilsinmi?")) { db.transaction("items", "readwrite").objectStore("items").delete(n); renderGrid(); renderInventory(); } }
+    function deleteItem(n) { if(confirm("O'chirilsinmi?")) { db.transaction("items", "readwrite").objectStore("items").delete(n).onsuccess = () => { renderGrid(); renderInventory(); }; } }
     function clearAllData() { if(confirm("Tarixni butunlay o'chirilsinmi?")) { db.transaction("sales", "readwrite").objectStore("sales").clear(); renderHistory(); } }
 </script>
 </body>
