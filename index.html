@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kassa Pro Elite v28</title>
+    <title>Kassa Pro Elite v29</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -49,7 +49,7 @@
 
     <div id="historyPage" class="page">
         <h2>Analitika 📜</h2>
-        <div style="display:flex; gap:5px; margin-bottom:15px;">
+        <div style="display:flex; gap:5px; margin-bottom:15px; overflow-x: auto;">
             <button class="btn" style="padding:10px; font-size:11px; flex:1" onclick="setSort('time')">🕒 Vaqt</button>
             <button class="btn" style="padding:10px; font-size:11px; flex:1; background:var(--dark)" onclick="setSort('all_items')">📜 Umumiy</button>
             <button class="btn" style="padding:10px; font-size:11px; flex:1; background:var(--edit)" onclick="setSort('product')">🍎 Mahsulot</button>
@@ -74,6 +74,9 @@
 
     <div id="weightModal" class="modal"><div class="modal-content" style="text-align:center"><h3 id="selectedName"></h3><input type="number" id="vaznField" style="width:100%; padding:15px; font-size:22px; border-radius:12px; border:1px solid #ddd;" placeholder="0.00 kg" step="0.01"><button class="btn" style="margin-top:15px" onclick="confirmWeight()">TASDIQLASH</button><button class="btn" style="background:#f1f5f9; color:#444; margin-top:10px;" onclick="closeModal('weightModal')">BEKOR</button></div></div>
     <div id="cartModal" class="modal"><div class="modal-content"><h3 style="margin-top:0">Savat 🛒</h3><div id="cartItemsList"></div><button class="btn" style="margin-top:20px" onclick="closeModal('cartModal')">YOPISH</button></div></div>
+    
+    <div id="viewChekModal" class="modal"><div class="modal-content"><div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:10px; margin-bottom:10px;"><b>ARXIV CHEK</b></div><div id="viewChekItems"></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="viewChekTotal"></span></div><button class="btn" style="margin-top:20px; background:var(--dark)" onclick="closeModal('viewChekModal')">YOPISH</button></div></div>
+
     <div id="chekModal" class="modal"><div class="modal-content"><div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:10px; margin-bottom:10px;"><b>XARID CHEKI</b></div><div id="chekItems"></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="chekTotal"></span></div><button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ TASDIQLASH</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">BEKOR</button></div></div>
     <div id="exportModal" class="modal"><div class="modal-content"><h3>Eksport oralig'i</h3><button class="btn" onclick="exportByRange(1)" style="margin-bottom:10px">Bugun (Excel)</button><button class="btn" onclick="exportByRange('all')" style="background:var(--dark)">Hammasi (Excel)</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Yopish</button></div></div>
 
@@ -81,11 +84,11 @@
     let db, cart = [], selected = null, currentSort = 'time', editIndex = null;
     const formatMoney = n => new Intl.NumberFormat('uz-UZ').format(n) + " so'm";
 
-    const req = indexedDB.open("KassaDB_V28", 1);
+    const req = indexedDB.open("KassaDB_V29", 1);
     req.onupgradeneeded = e => {
         let d = e.target.result;
         d.createObjectStore("items", { keyPath: "name" });
-        d.createObjectStore("sales", { autoIncrement: true });
+        d.createObjectStore("sales", { keyPath: "id", autoIncrement: true });
     };
     req.onsuccess = e => { db = e.target.result; renderGrid(); renderInventory(); renderHistory(); };
 
@@ -149,14 +152,23 @@
         closeModal('chekModal'); renderHistory();
     }
 
-    // ANALITIKA & EXCEL
+    // ANALITIKA & TARIX
     function setSort(s) { currentSort = s; renderHistory(); }
+    
     function renderHistory() {
         const logs = document.getElementById('historyLogs'); logs.innerHTML = '';
         db.transaction("sales").objectStore("sales").getAll().onsuccess = e => { 
-            const sales = e.target.result;
+            let sales = e.target.result;
             if(currentSort === 'time') {
-                sales.reverse().slice(0, 50).forEach(h => { logs.innerHTML += `<div class="list-item"><span><small>${h.date} ${h.time}</small><br><b>${h.total.toLocaleString()} so'm</b></span></div>`; }); 
+                sales.reverse().slice(0, 50).forEach(h => { 
+                    logs.innerHTML += `<div class="list-item">
+                        <span><small>${h.date} ${h.time}</small><br><b>${h.total.toLocaleString()} so'm</b></span>
+                        <div style="display:flex; gap:5px">
+                            <button onclick='viewOldSale(${JSON.stringify(h.items)}, ${h.total})' class="edit-btn">👁</button>
+                            <button onclick='deleteSale(${h.id})' class="edit-btn" style="color:var(--danger)">🗑</button>
+                        </div>
+                    </div>`; 
+                }); 
             } else if(currentSort === 'product') {
                 let stats = {};
                 sales.forEach(s => s.items.forEach(i => { if(!stats[i.name]) stats[i.name]={w:0, s:0}; stats[i.name].w+=i.weight; stats[i.name].s+=i.total; }));
@@ -165,6 +177,18 @@
                 sales.forEach(s => s.items.forEach(i => { logs.innerHTML += `<div class="list-item" style="font-size:12px"><span>${s.time} - <b>${i.name}</b></span><b>${i.weight}kg</b></div>`; }));
             }
         };
+    }
+
+    function viewOldSale(items, total) {
+        document.getElementById('viewChekItems').innerHTML = items.map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`).join('');
+        document.getElementById('viewChekTotal').innerText = total.toLocaleString() + " so'm";
+        openModal('viewChekModal');
+    }
+
+    function deleteSale(id) {
+        if(confirm("Ushbu chek o'chirilsinmi?")) {
+            db.transaction("sales", "readwrite").objectStore("sales").delete(id).onsuccess = () => renderHistory();
+        }
     }
 
     function exportByRange(days) {
@@ -204,15 +228,12 @@
                 data.push(row);
             }
 
-            // JAMI QATORINI QO'SHISH
             let totalRow = [];
             names.forEach((n, i) => {
                 let col = i * 3;
                 let totalW = blocks[n].reduce((sum, item) => sum + item.w, 0);
                 let totalS = blocks[n].reduce((sum, item) => sum + item.s, 0);
-                totalRow[col] = "JAMI:";
-                totalRow[col+1] = totalW.toFixed(2);
-                totalRow[col+2] = totalS;
+                totalRow[col] = "JAMI:"; totalRow[col+1] = totalW.toFixed(2); totalRow[col+2] = totalS;
             });
             data.push(totalRow);
 
@@ -244,7 +265,7 @@
     function editItem(n, p) { document.getElementById('pName').value = n; document.getElementById('pPrice').value = p; document.getElementById('editOldName').value = n; document.getElementById('cancelBtn').style.display = 'block'; window.scrollTo(0,0); }
     function resetForm() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('editOldName').value = ''; document.getElementById('cancelBtn').style.display = 'none'; }
     function deleteItem(n) { if(confirm("O'chirilsinmi?")) { db.transaction("items", "readwrite").objectStore("items").delete(n); renderGrid(); renderInventory(); } }
-    function clearAllData() { if(confirm("Tarix o'chirilsinmi?")) { db.transaction("sales", "readwrite").objectStore("sales").clear(); renderHistory(); } }
+    function clearAllData() { if(confirm("Tarixni butunlay o'chirilsinmi?")) { db.transaction("sales", "readwrite").objectStore("sales").clear(); renderHistory(); } }
 </script>
 </body>
 </html>
