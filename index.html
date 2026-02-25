@@ -80,6 +80,9 @@
     <div id="chekModal" class="modal"><div class="modal-content"><h3>Xarid Cheki</h3><div id="chekItems"></div><div style="margin-top:15px"><label style="font-size:12px; font-weight:600">CHEK UCHUN IZOH:</label><textarea id="saleNote" rows="2" placeholder="Xaridor ismi yoki eslatma..."></textarea></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="chekTotal"></span></div><button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ TASDIQLASH</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">BEKOR</button></div></div>
     <div id="viewChekModal" class="modal"><div class="modal-content"><div id="viewChekItems"></div><div id="viewChekNote" style="margin-top:10px; padding:10px; background:#fff9e6; border-radius:8px; font-size:12px; display:none;"></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="viewChekTotal"></span></div><button class="btn" style="margin-top:20px; background:var(--dark)" onclick="closeModal('viewChekModal')">YOPISH</button></div></div>
     <div id="exportModal" class="modal"><div class="modal-content"><h3>Eksport oralig'i</h3><button class="btn" onclick="exportByRange(1)" style="margin-bottom:10px">Bugun (Excel)</button><button class="btn" onclick="exportByRange('all')" style="background:var(--dark)">Hammasi (Excel)</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Yopish</button></div></div>
+    
+<script defer src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 
 <script>
     // 1. FIREBASE INTEGRATSIYASI (SIZNING ANIQLANGAN MALUMOTLARINGIZ)
@@ -143,21 +146,34 @@
     }
 
     function finishSale() {
-        if(cart.length === 0) return;
-        let t = cart.reduce((a, b) => a + b.total, 0), now = new Date();
-        let d = now.getDate().toString().padStart(2,'0') + "." + (now.getMonth()+1).toString().padStart(2,'0') + "." + now.getFullYear();
-        let tStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0') + ":" + now.getSeconds().toString().padStart(2,'0');
-        let note = document.getElementById('saleNote').value;
-        
-        let saleData = { date: d, time: tStr, items: [...cart], total: t, note: note, ts: now.getTime() };
+    if(cart.length === 0) return;
+    
+    // Ma'lumotlarni tayyorlash
+    let t = cart.reduce((a, b) => a + b.total, 0), now = new Date();
+    let d = now.getDate().toString().padStart(2,'0') + "." + (now.getMonth()+1).toString().padStart(2,'0') + "." + now.getFullYear();
+    let tStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0') + ":" + now.getSeconds().toString().padStart(2,'0');
+    let note = document.getElementById('saleNote').value;
+    
+    let saleData = { date: d, time: tStr, items: [...cart], total: t, note: note, ts: now.getTime() };
 
-        remoteDB.ref('sales').push(saleData).then(() => {
-            cart = []; 
-            document.getElementById('cartCount').innerText = "0"; 
-            document.getElementById('saleNote').value = ''; 
-            closeModal('chekModal');
-        }).catch(err => alert("Xato: Internetni tekshiring!"));
-    }
+    // 1. Darhol interfeysni tozalaymiz (Kutib o'tirmaymiz)
+    cart = []; 
+    document.getElementById('cartCount').innerText = "0"; 
+    document.getElementById('saleNote').value = ''; 
+    closeModal('chekModal');
+
+    // 2. Serverga yuborishni orqa fonda bajaramiz
+    remoteDB.ref('sales').push(saleData)
+        .then(() => {
+            console.log("Muvaffaqiyatli sinxronlandi");
+        })
+        .catch(err => {
+            alert("Internet sust, lekin ma'lumot saqlandi!");
+            // Ma'lumot yo'qolmasligi uchun IndexedDB ga zaxira qilamiz
+            db.transaction("sales", "readwrite").objectStore("sales").add(saleData);
+        });
+}
+
 
     function deleteSale(id) {
         if(confirm("Ushbu chek barcha telefonlardan o'chirilsinmi?")) {
