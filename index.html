@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kassa Pro Elite v48</title>
+    <title>Kassa Pro Elite v47</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
@@ -13,14 +13,13 @@
         .active-page { display: block; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .prod-card { background: #fff; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; cursor: pointer; transition: 0.2s; }
-        .prod-card:active { transform: scale(0.95); background: #f1f5f9; }
+        .prod-card { background: #fff; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; cursor: pointer; }
         .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #fff; display: flex; border-top: 1px solid #e2e8f0; z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; color: #94a3b8; font-size: 11px; cursor: pointer; }
         .nav-active { color: var(--main); }
         .action-bar { position: fixed; bottom: 80px; left: 15px; right: 15px; display: flex; gap: 10px; z-index: 999; transition: 0.3s; }
-        .btn-cart { flex: 1; background: var(--blue); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-pay { flex: 2; background: var(--dark); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; font-size: 16px; }
+        .btn-cart { flex: 1; background: var(--blue); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+        .btn-pay { flex: 2; background: var(--dark); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; font-size: 16px; cursor: pointer; }
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index: 1100; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 92%; padding: 25px; border-radius: 24px; max-height: 85vh; overflow-y: auto; }
         .btn { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
@@ -28,7 +27,7 @@
         .edit-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 8px; margin-left: 5px; cursor: pointer; }
         .hidden-bar { transform: translateY(200px); opacity: 0; pointer-events: none; }
         .note-text { font-size: 11px; color: var(--edit); font-style: italic; display: block; margin-top: 4px; border-left: 2px solid var(--edit); padding-left: 5px; }
-        textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; box-sizing: border-box; margin-top: 5px; }
+        textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -52,9 +51,9 @@
 
     <div id="historyPage" class="page">
         <h2>Analitika 📜</h2>
-        <div style="display:flex; gap:5px; margin-bottom:15px;">
+        <div style="display:flex; gap:5px; margin-bottom:15px; overflow-x: auto;">
             <button class="btn" style="padding:10px; font-size:11px; flex:1" onclick="setSort('time')">🕒 Cheklar</button>
-            <button class="btn" style="padding:10px; font-size:11px; flex:1; background:var(--edit)" onclick="setSort('product')">🍎 Jami kg</button>
+            <button class="btn" style="padding:10px; font-size:11px; flex:1; background:var(--edit)" onclick="setSort('product')">🍎 Mahsulotlar</button>
         </div>
         <div id="historyLogs"></div>
         <div style="margin-top:20px; display:flex; gap:10px;">
@@ -78,7 +77,7 @@
 
     <div id="weightModal" class="modal"><div class="modal-content" style="text-align:center"><h3 id="selectedName"></h3><input type="number" id="vaznField" style="width:100%; padding:15px; font-size:22px; border-radius:12px; border:1px solid #ddd;" placeholder="0.00 kg" step="0.01"><button class="btn" style="margin-top:15px" onclick="confirmWeight()">TASDIQLASH</button><button class="btn" style="background:#f1f5f9; color:#444; margin-top:10px;" onclick="closeModal('weightModal')">BEKOR</button></div></div>
     <div id="cartModal" class="modal"><div class="modal-content"><h3>Savat 🛒</h3><div id="cartItemsList"></div><button class="btn" style="margin-top:20px" onclick="closeModal('cartModal')">YOPISH</button></div></div>
-    <div id="chekModal" class="modal"><div class="modal-content"><h3>Xarid Cheki</h3><div id="chekItems"></div><div style="margin-top:15px"><label style="font-size:12px; font-weight:600">CHEK UCHUN IZOH:</label><textarea id="saleNote" rows="2" placeholder="Xaridor yoki eslatma..."></textarea></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="chekTotal"></span></div><button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ TASDIQLASH</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">BEKOR</button></div></div>
+    <div id="chekModal" class="modal"><div class="modal-content"><h3>Xarid Cheki</h3><div id="chekItems"></div><div style="margin-top:15px"><label style="font-size:12px; font-weight:600">CHEK UCHUN IZOH:</label><textarea id="saleNote" rows="2" placeholder="Xaridor ismi yoki eslatma..."></textarea></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="chekTotal"></span></div><button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ TASDIQLASH</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">BEKOR</button></div></div>
     <div id="viewChekModal" class="modal"><div class="modal-content"><div id="viewChekItems"></div><div id="viewChekNote" style="margin-top:10px; padding:10px; background:#fff9e6; border-radius:8px; font-size:12px; display:none;"></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="viewChekTotal"></span></div><button class="btn" style="margin-top:20px; background:var(--dark)" onclick="closeModal('viewChekModal')">YOPISH</button></div></div>
     <div id="editNoteModal" class="modal"><div class="modal-content"><h3>Izohni tahrirlash</h3><textarea id="editNoteField" rows="4"></textarea><input type="hidden" id="editNoteId"><button class="btn" style="margin-top:15px" onclick="saveEditedNote()">SAQLASH</button><button class="btn" style="background:#f1f5f9; color:#444; margin-top:10px;" onclick="closeModal('editNoteModal')">BEKOR</button></div></div>
     <div id="exportModal" class="modal"><div class="modal-content"><h3>Eksport oralig'i</h3><button class="btn" onclick="exportByRange(1)" style="margin-bottom:10px">Bugun (Excel)</button><button class="btn" onclick="exportByRange('all')" style="background:var(--dark)">Hammasi (Excel)</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Yopish</button></div></div>
@@ -87,55 +86,41 @@
     let db, cart = [], selected = null, currentSort = 'time', editIndex = null;
     const formatMoney = n => new Intl.NumberFormat('uz-UZ').format(n) + " so'm";
 
-    // DBni ochish va Standart mahsulotlarni tekshirish
     const req = indexedDB.open("KassaDB_V30", 1);
-    req.onupgradeneeded = e => {
-        let d = e.target.result;
-        if(!d.objectStoreNames.contains("items")) d.createObjectStore("items", {keyPath: "name"});
-        if(!d.objectStoreNames.contains("sales")) d.createObjectStore("sales", {keyPath: "id", autoIncrement: true});
-    };
-    req.onsuccess = e => { 
-        db = e.target.result; 
-        checkDefaults(); // Standartlarni tekshirish
-        refreshUI(); 
-    };
+    req.onsuccess = e => { db = e.target.result; refreshUI(); };
 
-    function checkDefaults() {
-        const defaults = [
-            {name: "Alumin", price: 16000}, {name: "Alumin sim", price: 26000},
-            {name: "Qizil", price: 108000}, {name: "Yaltiroq", price: 115000},
-            {name: "Lotun zavod", price: 60000}, {name: "Lotun", price: 64000},
-            {name: "Qizil 50%", price: 54000}
-        ];
-        let tx = db.transaction("items", "readwrite");
-        let store = tx.objectStore("items");
-        store.count().onsuccess = ev => {
-            if(ev.target.result === 0) {
-                defaults.forEach(p => store.add(p));
-                refreshUI();
-            }
-        };
-    }
-
-    // VAQT VA ANALITIKA
     function superParse(dStr, tStr) {
         try {
             const dParts = dStr.toString().split(/[\.\/]/);
             const tParts = (tStr || "00:00:00").toString().split(':');
-            let d = parseInt(dParts[0]), m = parseInt(dParts[1])-1, y = parseInt(dParts[2]);
-            if(dParts[0].length === 4) { y = parseInt(dParts[0]); m = parseInt(dParts[1])-1; d = parseInt(dParts[2]); }
-            return new Date(y, m, d, parseInt(tParts[0]||0), parseInt(tParts[1]||0), parseInt(tParts[2]||0)).getTime();
-        } catch(e) { return Date.now(); }
+            let day = parseInt(dParts[0]), month = parseInt(dParts[1]) - 1, year = parseInt(dParts[2]);
+            if (dParts[0].length === 4) { year = parseInt(dParts[0]); month = parseInt(dParts[1]) - 1; day = parseInt(dParts[2]); }
+            return new Date(year, month, day, parseInt(tParts[0]||0), parseInt(tParts[1]||0), parseInt(tParts[2]||0)).getTime();
+        } catch (e) { return Date.now(); }
     }
 
+    function openTab(tabId, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
+        document.getElementById(tabId).classList.add('active-page');
+        el.classList.add('nav-active');
+        const bar = document.getElementById('actionBar');
+        if(tabId === 'salePage') bar.classList.remove('hidden-bar');
+        else bar.classList.add('hidden-bar');
+    }
+
+    // TARIHNI RENDER QILISH (CHEKLAR ASOSIDA)
     function renderHistory() {
         const logs = document.getElementById('historyLogs'); logs.innerHTML = '';
         db.transaction("sales").objectStore("sales").getAll().onsuccess = e => { 
             let sales = e.target.result.sort((a,b) => (b.ts || 0) - (a.ts || 0));
+            
             if(currentSort === 'time') {
+                // Har bir chek bitta blok bo'lib chiqadi
                 sales.forEach(h => { 
                     let itemsPreview = h.items.map(i => i.name).join(', ');
-                    if(itemsPreview.length > 35) itemsPreview = itemsPreview.substring(0, 35) + "...";
+                    if(itemsPreview.length > 30) itemsPreview = itemsPreview.substring(0, 30) + "...";
+                    
                     logs.innerHTML += `<div class="list-item" style="flex-direction: column; align-items: flex-start;">
                         <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                             <span><small>${h.date} ${h.time}</small><br><b>${h.total.toLocaleString()} so'm</b></span>
@@ -145,11 +130,11 @@
                                 <button onclick='deleteSale(${h.id})' class="edit-btn" style="color:var(--danger)">🗑</button>
                             </div>
                         </div>
-                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">🛒 ${itemsPreview}</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 5px;">🛒 ${itemsPreview}</div>
                         ${h.note ? `<span class="note-text">📝 ${h.note}</span>` : ''}
                     </div>`; 
                 }); 
-            } else {
+            } else if(currentSort === 'product') {
                 let stats = {};
                 sales.forEach(s => s.items.forEach(i => { if(!stats[i.name]) stats[i.name]={w:0, s:0}; stats[i.name].w+=i.weight; stats[i.name].s+=i.total; }));
                 Object.keys(stats).sort((a,b) => stats[b].s - stats[a].s).forEach(k => { 
@@ -159,136 +144,55 @@
         };
     }
 
-    // SAVDO FUNKSIYALARI
-    function finishSale() {
-        if(cart.length === 0) return;
-        let now = new Date();
-        let d = now.getDate().toString().padStart(2,'0') + "." + (now.getMonth()+1).toString().padStart(2,'0') + "." + now.getFullYear();
-        let tStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0') + ":" + now.getSeconds().toString().padStart(2,'0');
-        let note = document.getElementById('saleNote').value;
-        let total = cart.reduce((a, b) => a + b.total, 0);
-        db.transaction("sales", "readwrite").objectStore("sales").add({
-            date: d, time: tStr, items: [...cart], total: total, note: note, ts: now.getTime()
-        }).onsuccess = () => {
-            cart = []; document.getElementById('cartCount').innerText = "0";
-            document.getElementById('saleNote').value = ''; closeModal('chekModal'); renderHistory();
-        };
-    }
-
-    // EXPORT (Izoh faqat birinchi mahsulotda)
+    // EXPORT QILISh (IZOH FAQAT BIRINCHI MAXSULOTDA)
     function exportByRange(days) {
         closeModal('exportModal');
         db.transaction("sales").objectStore("sales").getAll().onsuccess = e => {
             let sales = e.target.result;
             if(days !== 'all') sales = sales.filter(s => (Date.now() - s.ts) <= 86400000);
             if(!sales.length) return alert("Ma'lumot yo'q!");
+            
             let data = [], merges = [], row1 = [], row2 = [], blocks = {};
+            
+            // Mahsulotlar bo'yicha guruhlash
             sales.forEach(s => {
                 s.items.forEach((item, index) => {
                     if(!blocks[item.name]) blocks[item.name] = [];
-                    let noteVal = (index === 0) ? (s.note || "") : "";
-                    blocks[item.name].push({t: s.date+" "+s.time, w: item.weight, s: item.total, n: noteVal});
+                    // Izoh faqat chekdagi birinchi mahsulot bo'lsagina yoziladi
+                    let noteValue = (index === 0) ? (s.note || "") : "";
+                    blocks[item.name].push({t: s.date+" "+s.time, w: item.weight, s: item.total, n: noteValue});
                 });
             });
-            let names = Object.keys(blocks); let maxR = 0;
+            
+            let names = Object.keys(blocks); let maxRows = 0;
             names.forEach((n, i) => {
-                let c = i * 4; row1[c] = n; merges.push({s:{r:0, c:c}, e:{r:0, c:c+3}});
-                row2[c] = "Vaqt"; row2[c+1] = "Vazn"; row2[c+2] = "Summa"; row2[c+3] = "Izoh";
-                maxR = Math.max(maxR, blocks[n].length);
+                let col = i * 4;
+                row1[col] = n; merges.push({s:{r:0, c:col}, e:{r:0, c:col+3}});
+                row2[col] = "Vaqt"; row2[col+1] = "Vazn"; row2[col+2] = "Summa"; row2[col+3] = "Izoh";
+                maxRows = Math.max(maxRows, blocks[n].length);
             });
+            
             data.push(row1, row2);
-            for(let r=0; r<maxR; r++) {
-                let row = []; names.forEach((n, i) => { 
-                    let c = i * 4; if(blocks[n][r]) { row[c]=blocks[n][r].t; row[c+1]=blocks[n][r].w; row[c+2]=blocks[n][r].s; row[c+3]=blocks[n][r].n; }
+            for(let r=0; r<maxRows; r++) {
+                let row = []; 
+                names.forEach((n, i) => { 
+                    let col = i * 4; 
+                    if(blocks[n][r]) { 
+                        row[col] = blocks[n][r].t; 
+                        row[col+1] = blocks[n][r].w; 
+                        row[col+2] = blocks[n][r].s; 
+                        row[col+3] = blocks[n][r].n; 
+                    } 
                 });
                 data.push(row);
             }
             const ws = XLSX.utils.aoa_to_sheet(data); ws['!merges'] = merges;
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
-            XLSX.writeFile(wb, `Kassa_Hisobot_v48.xlsx`);
+            XLSX.writeFile(wb, `Kassa_Hisobot_v47.xlsx`);
         };
     }
 
-    // Qolgan standart mantiqlar
-    function openTab(tabId, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
-        document.getElementById(tabId).classList.add('active-page');
-        el.classList.add('nav-active');
-        document.getElementById('actionBar').classList.toggle('hidden-bar', tabId !== 'salePage');
-    }
-    function renderGrid() {
-        const grid = document.getElementById('productGrid'); grid.innerHTML = '';
-        db.transaction("items").objectStore("items").getAll().onsuccess = e => {
-            e.target.result.forEach(p => {
-                grid.innerHTML += `<div class="prod-card" onclick="openWeight('${p.name}', ${p.price})"><b>${p.name}</b><br><span style="color:var(--main)">${p.price.toLocaleString()}</span></div>`;
-            });
-        };
-    }
-    function openWeight(n, p, idx = null) {
-        editIndex = idx; selected = { name: n, price: p };
-        document.getElementById('selectedName').innerText = n;
-        document.getElementById('vaznField').value = idx !== null ? cart[idx].weight : '';
-        openModal('weightModal'); setTimeout(() => document.getElementById('vaznField').focus(), 150);
-    }
-    function confirmWeight() {
-        let w = parseFloat(document.getElementById('vaznField').value); if(!w) return;
-        if(editIndex !== null) { cart[editIndex].weight = w; cart[editIndex].total = Math.round(cart[editIndex].price * w); editIndex = null; openCart(); }
-        else { cart.push({ ...selected, weight: w, total: Math.round(selected.price * w) }); }
-        document.getElementById('cartCount').innerText = cart.length; closeModal('weightModal');
-    }
-    function openCart() {
-        const list = document.getElementById('cartItemsList');
-        list.innerHTML = cart.length ? '' : '<p style="text-align:center; color:#94a3b8">Savat bo\'sh</p>';
-        cart.forEach((item, idx) => {
-            list.innerHTML += `<div class="list-item"><span><b>${item.name}</b><br><small>${item.weight}kg x ${item.price.toLocaleString()}</small></span><b>${item.total.toLocaleString()}</b><div><button class="edit-btn" onclick="startEdit(${idx})">✏️</button><button class="edit-btn" style="color:var(--danger)" onclick="removeFromCart(${idx})">🗑</button></div></div>`;
-        });
-        openModal('cartModal');
-    }
-    function startEdit(idx) { closeModal('cartModal'); openWeight(cart[idx].name, cart[idx].price, idx); }
-    function removeFromCart(i) { cart.splice(i, 1); document.getElementById('cartCount').innerText = cart.length; openCart(); }
-    function showReceipt() {
-        if(!cart.length) return alert("Savat bo'sh!");
-        let t = 0; let html = cart.map(i => { t += i.total; return `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`; }).join('');
-        document.getElementById('chekItems').innerHTML = html; document.getElementById('chekTotal').innerText = t.toLocaleString() + " so'm"; openModal('chekModal');
-    }
-    function openEditNote(id, note) { document.getElementById('editNoteId').value = id; document.getElementById('editNoteField').value = note; openModal('editNoteModal'); }
-    function saveEditedNote() {
-        let id = parseInt(document.getElementById('editNoteId').value);
-        let tx = db.transaction("sales", "readwrite");
-        let store = tx.objectStore("sales");
-        store.get(id).onsuccess = e => { let d = e.target.result; d.note = document.getElementById('editNoteField').value; store.put(d); tx.oncomplete = () => { closeModal('editNoteModal'); renderHistory(); }; };
-    }
-    function viewOldSale(items, total, note) {
-        document.getElementById('viewChekItems').innerHTML = items.map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`).join('');
-        document.getElementById('viewChekTotal').innerText = total.toLocaleString() + " so'm";
-        const nD = document.getElementById('viewChekNote'); if(note) { nD.innerText = "Izoh: " + note; nD.style.display = 'block'; } else nD.style.display = 'none';
-        openModal('viewChekModal');
-    }
-    function deleteSale(id) { if(confirm("O'chirilsinmi?")) db.transaction("sales", "readwrite").objectStore("sales").delete(id).onsuccess = () => renderHistory(); }
-    function clearAllData() { if(confirm("Hamma tarix o'chirilsinmi?")) db.transaction("sales", "readwrite").objectStore("sales").clear().onsuccess = () => renderHistory(); }
-    function setSort(s) { currentSort = s; renderHistory(); }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function saveProduct() {
-        let n = document.getElementById('pName').value, p = parseFloat(document.getElementById('pPrice').value), old = document.getElementById('editOldName').value;
-        if(!n || !p) return;
-        let tx = db.transaction("items", "readwrite"); if(old && old !== n) tx.objectStore("items").delete(old);
-        tx.objectStore("items").put({ name: n, price: p }); tx.oncomplete = () => { resetForm(); refreshUI(); };
-    }
-    function resetForm() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('editOldName').value = ''; document.getElementById('cancelBtn').style.display = 'none'; }
-    function editItem(n, p) { document.getElementById('pName').value = n; document.getElementById('pPrice').value = p; document.getElementById('editOldName').value = n; document.getElementById('cancelBtn').style.display = 'block'; }
-    function deleteItem(n) { if(confirm("O'chirilsinmi?")) db.transaction("items", "readwrite").objectStore("items").delete(n).onsuccess = () => refreshUI(); }
-    function renderInventory() {
-        const list = document.getElementById('inventoryList'); list.innerHTML = '';
-        db.transaction("items").objectStore("items").getAll().onsuccess = e => {
-            e.target.result.forEach(p => {
-                list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small>${p.price.toLocaleString()} so'm</small></span><div><button onclick="editItem('${p.name}', ${p.price})" class="edit-btn">✏️</button><button onclick="deleteItem('${p.name}')" class="edit-btn" style="color:var(--danger)">🗑</button></div></div>`;
-            });
-        };
-    }
-    function refreshUI() { renderGrid(); renderInventory(); renderHistory(); }
-
+    // IMPORT QILISH (O'ZGARISHSIZ)
     async function importExcel(event) {
         const file = event.target.files[0]; if(!file) return;
         const reader = new FileReader();
@@ -296,6 +200,8 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            const existingSales = await new Promise(res => { db.transaction("sales").objectStore("sales").getAll().onsuccess = ev => res(ev.target.result); });
+            const existingIDs = new Set(existingSales.map(s => `${s.date}|${s.time}|${s.items[0].name}|${s.items[0].weight}`));
             let tx = db.transaction("sales", "readwrite"), store = tx.objectStore("sales"), added = 0;
             for (let col = 0; col < rows[0].length; col += 4) {
                 let pName = rows[0][col]; if(!pName) continue;
@@ -304,14 +210,103 @@
                     if(fTime && fTime !== "JAMI:") {
                         let parts = fTime.toString().split(' '), d = parts[0], t = parts[1] || "00:00:00", 
                             w = parseFloat(rows[r][col+1]), tot = parseFloat(rows[r][col+2]), note = rows[r][col+3] || "";
-                        store.add({ date: d, time: t, items: [{ name: pName, weight: w, total: tot, price: Math.round(tot/w) }], total: tot, note: note, ts: superParse(d, t) });
-                        added++;
+                        if(!existingIDs.has(`${d}|${t}|${pName}|${w}`)) {
+                            store.add({ date: d, time: t, items: [{ name: pName, weight: w, total: tot, price: Math.round(tot/w) }], total: tot, note: note, ts: superParse(d, t) });
+                            added++;
+                        }
                     }
                 }
             }
-            tx.oncomplete = () => { alert(`${added} ta savdo qo'shildi.`); renderHistory(); };
+            tx.oncomplete = () => { alert(`${added} ta yangi savdo qo'shildi.`); renderHistory(); };
         };
         reader.readAsArrayBuffer(file);
+    }
+
+    // BOSHQA STANDART FUNKSIYALAR
+    function openEditNote(id, currentNote) {
+        document.getElementById('editNoteId').value = id;
+        document.getElementById('editNoteField').value = currentNote;
+        openModal('editNoteModal');
+    }
+    function saveEditedNote() {
+        let id = parseInt(document.getElementById('editNoteId').value);
+        let newNote = document.getElementById('editNoteField').value;
+        let tx = db.transaction("sales", "readwrite");
+        let store = tx.objectStore("sales");
+        store.get(id).onsuccess = e => {
+            let data = e.target.result; data.note = newNote; store.put(data);
+            tx.oncomplete = () => { closeModal('editNoteModal'); renderHistory(); };
+        };
+    }
+    function finishSale() {
+        if(cart.length === 0) return;
+        let t = cart.reduce((a, b) => a + b.total, 0), now = new Date();
+        let d = now.getDate().toString().padStart(2,'0') + "." + (now.getMonth()+1).toString().padStart(2,'0') + "." + now.getFullYear();
+        let tStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0') + ":" + now.getSeconds().toString().padStart(2,'0');
+        let note = document.getElementById('saleNote').value;
+        db.transaction("sales", "readwrite").objectStore("sales").add({ date: d, time: tStr, items: [...cart], total: t, note: note, ts: now.getTime() }).onsuccess = () => {
+            cart = []; document.getElementById('cartCount').innerText = "0"; document.getElementById('saleNote').value = ''; closeModal('chekModal'); renderHistory();
+        };
+    }
+    function refreshUI() { renderGrid(); renderInventory(); renderHistory(); }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function renderGrid() {
+        const grid = document.getElementById('productGrid'); grid.innerHTML = '';
+        db.transaction("items").objectStore("items").getAll().onsuccess = e => { e.target.result.forEach(p => { grid.innerHTML += `<div class="prod-card" onclick="openWeight('${p.name}', ${p.price})"><b>${p.name}</b><br><span style="color:var(--main)">${p.price.toLocaleString()}</span></div>`; }); };
+    }
+    function openWeight(n, p, idx = null) {
+        editIndex = idx; selected = { name: n, price: p };
+        document.getElementById('selectedName').innerText = n;
+        document.getElementById('vaznField').value = idx !== null ? cart[idx].weight : '';
+        openModal('weightModal'); setTimeout(() => document.getElementById('vaznField').focus(), 100);
+    }
+    function confirmWeight() {
+        let w = parseFloat(document.getElementById('vaznField').value); if(!w) return;
+        if(editIndex !== null) { cart[editIndex].weight = w; cart[editIndex].total = Math.round(cart[editIndex].price * w); editIndex = null; openCart(); }
+        else { cart.push({ ...selected, weight: w, total: Math.round(selected.price * w) }); }
+        document.getElementById('cartCount').innerText = cart.length; closeModal('weightModal');
+    }
+    function viewOldSale(items, total, note) {
+        document.getElementById('viewChekItems').innerHTML = items.map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`).join('');
+        document.getElementById('viewChekTotal').innerText = total.toLocaleString() + " so'm";
+        const noteDiv = document.getElementById('viewChekNote');
+        if(note) { noteDiv.innerText = "Izoh: " + note; noteDiv.style.display = 'block'; } else { noteDiv.style.display = 'none'; }
+        openModal('viewChekModal');
+    }
+    function deleteSale(id) { if(confirm("O'chirilsinmi?")) db.transaction("sales", "readwrite").objectStore("sales").delete(id).onsuccess = () => renderHistory(); }
+    function clearAllData() { if(confirm("Hamma tarix o'chirilsinmi?")) db.transaction("sales", "readwrite").objectStore("sales").clear().onsuccess = () => renderHistory(); }
+    function renderInventory() {
+        const list = document.getElementById('inventoryList'); list.innerHTML = '';
+        db.transaction("items").objectStore("items").getAll().onsuccess = e => { e.target.result.forEach(p => { list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small>${formatMoney(p.price)}</small></span><div><button onclick="editItem('${p.name}', ${p.price})" class="edit-btn">✏️</button><button onclick="deleteItem('${p.name}')" class="edit-btn" style="color:var(--danger)">🗑</button></div></div>`; }); };
+    }
+    function editItem(n, p) { document.getElementById('pName').value = n; document.getElementById('pPrice').value = p; document.getElementById('editOldName').value = n; document.getElementById('cancelBtn').style.display = 'block'; }
+    function saveProduct() {
+        let n = document.getElementById('pName').value, p = parseFloat(document.getElementById('pPrice').value), old = document.getElementById('editOldName').value;
+        if(!n || !p) return;
+        let tx = db.transaction("items", "readwrite"); if(old && old !== n) tx.objectStore("items").delete(old);
+        tx.objectStore("items").put({ name: n, price: p }); tx.oncomplete = () => { resetForm(); refreshUI(); };
+    }
+    function resetForm() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('editOldName').value = ''; document.getElementById('cancelBtn').style.display = 'none'; }
+    function deleteItem(n) { if(confirm("O'chirilsinmi?")) db.transaction("items", "readwrite").objectStore("items").delete(n).onsuccess = () => refreshUI(); }
+    function setSort(s) { currentSort = s; renderHistory(); }
+    function openCart() {
+        const list = document.getElementById('cartItemsList');
+        list.innerHTML = cart.length ? '' : '<p style="text-align:center; color:#94a3b8">Savat bo\'sh</p>';
+        cart.forEach((item, idx) => {
+            list.innerHTML += `<div class="list-item"><span><b>${item.name}</b><br><small>${item.weight} kg x ${item.price.toLocaleString()}</small></span><b>${item.total.toLocaleString()}</b><div><button class="edit-btn" onclick="startEdit(${idx})">✏️</button><button class="edit-btn" style="color:var(--danger)" onclick="removeFromCart(${idx})">🗑</button></div></div>`;
+        });
+        openModal('cartModal');
+    }
+    function startEdit(idx) { closeModal('cartModal'); openWeight(cart[idx].name, cart[idx].price, idx); }
+    function removeFromCart(i) { cart.splice(i, 1); document.getElementById('cartCount').innerText = cart.length; openCart(); }
+    function showReceipt() {
+        if(cart.length === 0) return alert("Savat bo'sh!");
+        let t = 0;
+        let html = cart.map(i => { t += i.total; return `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`; }).join('');
+        document.getElementById('chekItems').innerHTML = html;
+        document.getElementById('chekTotal').innerText = t.toLocaleString() + " so'm";
+        openModal('chekModal');
     }
 </script>
 </body>
