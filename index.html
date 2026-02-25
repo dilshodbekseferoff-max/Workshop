@@ -3,35 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kassa Pro Ultimate v24</title>
+    <title>Kassa Pro Elite v26</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        :root { --main: #10b981; --bg: #f8fafc; --dark: #1e293b; --danger: #ef4444; --edit: #f59e0b; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-bottom: 120px; color: var(--dark); }
+        :root { --main: #10b981; --bg: #f8fafc; --dark: #1e293b; --danger: #ef4444; --edit: #f59e0b; --blue: #3b82f6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-bottom: 150px; color: var(--dark); overflow-x: hidden; }
+        
         .page { display: none; padding: 20px; box-sizing: border-box; }
         .active-page { display: block; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .prod-card { background: #fff; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
-        .nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; border-top: 1px solid #e2e8f0; z-index: 1000; }
+        .prod-card { background: #fff; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; transition: 0.1s; }
+        .prod-card:active { transform: scale(0.95); }
+
+        /* Navigatsiya */
+        .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #fff; display: flex; border-top: 1px solid #e2e8f0; z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; color: #94a3b8; font-size: 11px; }
         .nav-active { color: var(--main); }
-        .floating-pay-btn { position: fixed; bottom: 90px; left: 20px; right: 20px; height: 55px; background: var(--dark); color: white; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 999; border:none; transition: 0.3s; }
-        .hidden-btn { transform: translateY(150px); opacity: 0; }
-        .receipt { font-family: 'Courier New', monospace; padding: 10px; }
-        .receipt-header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .receipt-total { border-top: 1px dashed #000; margin-top: 10px; padding-top: 10px; font-weight: bold; font-size: 20px; text-align: right; }
-        .btn { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index: 1100; justify-content: center; align-items: center; }
+
+        /* Floating Controls */
+        .action-bar { position: fixed; bottom: 80px; left: 15px; right: 15px; display: flex; gap: 10px; z-index: 999; transition: 0.3s; }
+        .btn-cart { flex: 1; background: var(--blue); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        .btn-pay { flex: 2; background: var(--dark); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .hidden-bar { transform: translateY(150px); opacity: 0; }
+
+        /* Modallar */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index: 1100; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 92%; padding: 25px; border-radius: 24px; max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+        .btn { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
+        
         .list-item { display: flex; justify-content: space-between; background: white; padding: 16px; margin-bottom: 10px; border-radius: 16px; border: 1px solid #f1f5f9; align-items: center; }
-        .sort-tabs { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .sort-btn { flex: 1; min-width: 80px; padding: 10px 5px; border-radius: 10px; border: 1px solid #ddd; background: #fff; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-        .sort-btn.active { background: var(--dark); color: #fff; border-color: var(--dark); }
-        .stat-card { background: #fff; padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 5px solid var(--main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .feed-item { display: flex; justify-content: space-between; background: #fff; padding: 10px 15px; border-bottom: 1px solid #eee; font-size: 13px; }
+        
+        /* Savat va Chek */
+        .receipt { font-family: 'Courier New', monospace; }
+        .cart-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .edit-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 8px; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -45,7 +53,7 @@
         <h2>Ombor 📦</h2>
         <div style="background: white; padding: 18px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
             <input type="hidden" id="editOldName">
-            <input type="text" id="pName" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="Nomi">
+            <input type="text" id="pName" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="Mahsulot nomi">
             <input type="number" id="pPrice" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="Narxi">
             <button class="btn" onclick="saveProduct()">Saqlash</button>
             <button id="cancelBtn" class="btn" style="background:#94a3b8; margin-top:5px; display:none;" onclick="resetForm()">Bekor</button>
@@ -54,23 +62,24 @@
     </div>
 
     <div id="historyPage" class="page">
-        <h2>Tarix va Analitika 📜</h2>
-        <div class="sort-tabs">
-            <button class="sort-btn active" onclick="setSort('time', this)">🕒 Vaqt</button>
-            <button class="sort-btn" onclick="setSort('all_items', this)">📜 Umumiy</button>
-            <button class="sort-btn" onclick="setSort('product', this)">🍎 Mahsulot</button>
+        <h2>Analitika 📜</h2>
+        <div style="display:flex; gap:5px; margin-bottom:15px;">
+            <button class="btn" style="padding:10px; font-size:12px" onclick="setSort('time')">🕒 Vaqt</button>
+            <button class="btn" style="padding:10px; font-size:12px; background:var(--dark)" onclick="setSort('all_items')">📜 Umumiy</button>
+            <button class="btn" style="padding:10px; font-size:12px; background:var(--edit)" onclick="setSort('product')">🍎 Mahsulot</button>
         </div>
         <div id="historyLogs"></div>
-        <div style="margin-top:20px;">
-            <button class="btn" style="background:#3b82f6; margin-bottom: 10px;" onclick="openModal('exportModal')">📥 Excelga Yuklash</button>
-            <button class="btn" style="background:var(--danger);" onclick="clearAllData()">🗑 Tozalash</button>
-        </div>
+        <button class="btn" style="background:var(--danger); margin-top:20px" onclick="clearAllData()">🗑 Tarixni tozalash</button>
     </div>
 
-    <button id="mainPayBtn" class="floating-pay-btn" onclick="showReceipt()">
-        <span>Savat: <b id="cartCount">0</b></span>
-        <span>TO'LOV ➔</span>
-    </button>
+    <div id="actionBar" class="action-bar">
+        <button class="btn-cart" onclick="openCart()">
+            🛒 <span id="cartCount">0</span>
+        </button>
+        <button class="btn-pay" onclick="showReceipt()">
+            TO'LOV ➔
+        </button>
+    </div>
 
     <div class="nav">
         <div class="nav-item nav-active" onclick="openTab('salePage', this)"><span>SOTUV</span></div>
@@ -78,26 +87,31 @@
         <div class="nav-item" onclick="openTab('historyPage', this)"><span>TARIX</span></div>
     </div>
 
-    <div id="weightModal" class="modal"><div class="modal-content" style="text-align:center"><h3 id="selectedName"></h3><input type="number" id="vaznField" style="width:100%; padding:15px; font-size:20px; border-radius:10px; border:1px solid #ddd;" placeholder="0.00 kg"><button class="btn" style="margin-top:15px" onclick="confirmWeight()">Qo'shish</button><button class="btn" style="background:#f1f5f9; color:#444; margin-top:10px;" onclick="closeModal('weightModal')">Yopish</button></div></div>
+    <div id="weightModal" class="modal"><div class="modal-content" style="text-align:center"><h3 id="selectedName"></h3><input type="number" id="vaznField" style="width:100%; padding:15px; font-size:22px; border-radius:12px; border:1px solid #ddd;" placeholder="0.00 kg" step="0.01"><button class="btn" style="margin-top:15px" onclick="confirmWeight()">TASDIQLASH</button><button class="btn" style="background:#f1f5f9; color:#444; margin-top:10px;" onclick="closeModal('weightModal')">BEKOR</button></div></div>
     
-    <div id="chekModal" class="modal">
-        <div class="modal-content receipt">
-            <div class="receipt-header">XARID CHEKI<br>*** BOZOR KASSA ***</div>
-            <div id="chekItems"></div>
-            <div class="receipt-total">JAMI: <span id="chekTotal"></span></div>
-            <div style="text-align:center; font-size:11px; margin-top:15px;"><div id="chekDateTime"></div></div>
-            <button id="confirmSaleBtn" class="btn" style="margin-top:20px;" onclick="finishSale()">✅ Tasdiqlash</button>
-            <button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">Yopish</button>
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">Savat 🛒</h3>
+            <div id="cartItemsList"></div>
+            <button class="btn" style="margin-top:20px" onclick="closeModal('cartModal')">YOPISH</button>
         </div>
     </div>
 
-    <div id="exportModal" class="modal"><div class="modal-content"><h3>Eksport oralig'i</h3><button class="btn" onclick="exportByRange(1)" style="margin-bottom:10px">Bugun</button><button class="btn" onclick="exportByRange('all')" style="background:var(--dark)">Barcha tarix</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Yopish</button></div></div>
+    <div id="chekModal" class="modal">
+        <div class="modal-content receipt">
+            <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:10px; margin-bottom:10px;"><b>XARID CHEKI</b></div>
+            <div id="chekItems"></div>
+            <div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="chekTotal"></span></div>
+            <button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ SAVDONI YAKUNLASH</button>
+            <button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">BEKOR</button>
+        </div>
+    </div>
 
 <script>
-    let db, cart = [], selected = null, currentSort = 'time';
+    let db, cart = [], selected = null, currentSort = 'time', editIndex = null;
     const formatMoney = n => new Intl.NumberFormat('uz-UZ').format(n) + " so'm";
 
-    const req = indexedDB.open("KassaDB_V24", 1);
+    const req = indexedDB.open("KassaDB_V26", 1);
     req.onupgradeneeded = e => {
         let d = e.target.result;
         d.createObjectStore("items", { keyPath: "name" });
@@ -109,57 +123,80 @@
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
         document.getElementById(t).classList.add('active-page'); el.classList.add('nav-active');
-        const payBtn = document.getElementById('mainPayBtn');
-        if(t === 'salePage') payBtn.classList.remove('hidden-btn'); else payBtn.classList.add('hidden-btn');
+        document.getElementById('actionBar').className = (t === 'salePage') ? 'action-bar' : 'action-bar hidden-bar';
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 
-    // OMBOR
-    function saveProduct() {
-        let n = document.getElementById('pName').value, p = parseFloat(document.getElementById('pPrice').value), old = document.getElementById('editOldName').value;
-        if(!n || !p) return;
-        let tx = db.transaction("items", "readwrite");
-        if(old && old !== n) tx.objectStore("items").delete(old);
-        tx.objectStore("items").put({ name: n, price: p });
-        tx.oncomplete = () => { resetForm(); renderGrid(); renderInventory(); };
+    // SAVATNI BOSHQARISH
+    function openCart() {
+        const list = document.getElementById('cartItemsList');
+        list.innerHTML = cart.length ? '' : '<p style="text-align:center; color:#94a3b8">Savat bo\'sh</p>';
+        cart.forEach((item, idx) => {
+            list.innerHTML += `
+                <div class="cart-row">
+                    <span style="flex:1"><b>${item.name}</b><br><small>${item.weight} kg x ${item.price.toLocaleString()}</small></span>
+                    <b style="margin-right:10px">${item.total.toLocaleString()}</b>
+                    <button class="edit-btn" onclick="startEdit(${idx})">✏️</button>
+                    <button class="edit-btn" style="color:var(--danger)" onclick="removeFromCart(${idx})">🗑</button>
+                </div>`;
+        });
+        openModal('cartModal');
     }
-    function renderInventory() {
-        const list = document.getElementById('inventoryList'); list.innerHTML = '';
-        db.transaction("items").objectStore("items").getAll().onsuccess = e => {
-            e.target.result.forEach(p => { 
-                list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small>${formatMoney(p.price)}</small></span>
-                <div><button onclick="editItem('${p.name}', ${p.price})" style="background:var(--edit); color:white; border:none; padding:8px; border-radius:8px;">✏️</button>
-                <button onclick="deleteItem('${p.name}')" style="background:var(--danger); color:white; border:none; padding:8px; border-radius:8px;">🗑</button></div></div>`;
-            });
-        };
-    }
-    function editItem(n, p) { document.getElementById('pName').value = n; document.getElementById('pPrice').value = p; document.getElementById('editOldName').value = n; document.getElementById('cancelBtn').style.display = 'block'; window.scrollTo(0,0); }
-    function resetForm() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('editOldName').value = ''; document.getElementById('cancelBtn').style.display = 'none'; }
-    function deleteItem(n) { if(confirm("O'chirilsinmi?")) { db.transaction("items", "readwrite").objectStore("items").delete(n); renderGrid(); renderInventory(); } }
 
-    // SAVDO
+    function startEdit(idx) {
+        closeModal('cartModal');
+        openWeight(cart[idx].name, cart[idx].price, idx);
+    }
+
+    function removeFromCart(idx) {
+        cart.splice(idx, 1);
+        document.getElementById('cartCount').innerText = cart.length;
+        openCart();
+    }
+
+    // SOTUV
     function renderGrid() {
         const grid = document.getElementById('productGrid'); grid.innerHTML = '';
         db.transaction("items").objectStore("items").getAll().onsuccess = e => {
             e.target.result.forEach(p => { 
-                grid.innerHTML += `<div class="prod-card" onclick="openWeight('${p.name}', ${p.price})"><div style="font-weight:600">${p.name}</div><div style="color:var(--main); font-weight:800">${p.price.toLocaleString()}</div></div>`;
+                grid.innerHTML += `<div class="prod-card" onclick="openWeight('${p.name}', ${p.price})"><b>${p.name}</b><br><span style="color:var(--main)">${p.price.toLocaleString()}</span></div>`;
             });
         };
     }
-    function openWeight(n, p) { selected = { name: n, price: p }; document.getElementById('selectedName').innerText = n; openModal('weightModal'); document.getElementById('vaznField').focus(); }
-    function confirmWeight() { let w = parseFloat(document.getElementById('vaznField').value); if(!w) return; cart.push({ ...selected, weight: w, total: Math.round(selected.price * w) }); document.getElementById('cartCount').innerText = cart.length; closeModal('weightModal'); document.getElementById('vaznField').value = ''; }
-    
-    function showReceipt(oldCart = null) {
-        let targetCart = oldCart || cart;
+
+    function openWeight(n, p, idx = null) {
+        editIndex = idx; selected = { name: n, price: p };
+        document.getElementById('selectedName').innerText = n;
+        document.getElementById('vaznField').value = idx !== null ? cart[idx].weight : '';
+        openModal('weightModal');
+        setTimeout(() => document.getElementById('vaznField').focus(), 100);
+    }
+
+    function confirmWeight() {
+        let w = parseFloat(document.getElementById('vaznField').value);
+        if(!w) return;
+        if(editIndex !== null) {
+            cart[editIndex].weight = w;
+            cart[editIndex].total = Math.round(cart[editIndex].price * w);
+            editIndex = null;
+            openCart(); // Tahrirdan so'ng savatga qaytish
+        } else {
+            cart.push({ ...selected, weight: w, total: Math.round(selected.price * w) });
+        }
+        document.getElementById('cartCount').innerText = cart.length;
+        closeModal('weightModal');
+    }
+
+    function showReceipt() {
+        if(!cart.length) return alert("Savat bo'sh!");
         let t = 0;
-        let html = targetCart.map(i => { t += i.total; return `<div class="receipt-row"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`; }).join('');
-        document.getElementById('chekItems').innerHTML = html;
+        document.getElementById('chekItems').innerHTML = cart.map(i => {
+            t += i.total;
+            return `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`;
+        }).join('');
         document.getElementById('chekTotal').innerText = t.toLocaleString() + " so'm";
-        document.getElementById('chekDateTime').innerText = new Date().toLocaleString('uz-UZ');
-        const confirmBtn = document.getElementById('confirmSaleBtn');
-        if(oldCart) confirmBtn.style.display = 'none'; else confirmBtn.style.display = 'block';
         openModal('chekModal');
     }
 
@@ -174,76 +211,48 @@
         closeModal('chekModal'); renderHistory();
     }
 
-    // TARIX VA SARALASH
-    function setSort(type, el) {
-        currentSort = type;
-        document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        renderHistory();
+    // OMBOR VA TARIX (O'zgarmadi)
+    function saveProduct() {
+        let n = document.getElementById('pName').value, p = parseFloat(document.getElementById('pPrice').value), old = document.getElementById('editOldName').value;
+        if(!n || !p) return;
+        let tx = db.transaction("items", "readwrite");
+        if(old && old !== n) tx.objectStore("items").delete(old);
+        tx.objectStore("items").put({ name: n, price: p });
+        tx.oncomplete = () => { resetForm(); renderGrid(); renderInventory(); };
     }
+    function renderInventory() {
+        const list = document.getElementById('inventoryList'); list.innerHTML = '';
+        db.transaction("items").objectStore("items").getAll().onsuccess = e => {
+            e.target.result.forEach(p => { 
+                list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small>${formatMoney(p.price)}</small></span>
+                <div><button onclick="editItem('${p.name}', ${p.price})" class="edit-btn">✏️</button>
+                <button onclick="deleteItem('${p.name}')" class="edit-btn" style="color:var(--danger)">🗑</button></div></div>`;
+            });
+        };
+    }
+    function editItem(n, p) { document.getElementById('pName').value = n; document.getElementById('pPrice').value = p; document.getElementById('editOldName').value = n; document.getElementById('cancelBtn').style.display = 'block'; window.scrollTo(0,0); }
+    function resetForm() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('editOldName').value = ''; document.getElementById('cancelBtn').style.display = 'none'; }
+    function deleteItem(n) { if(confirm("O'chirilsinmi?")) { db.transaction("items", "readwrite").objectStore("items").delete(n); renderGrid(); renderInventory(); } }
 
+    function setSort(s) { currentSort = s; renderHistory(); }
     function renderHistory() {
         const logs = document.getElementById('historyLogs'); logs.innerHTML = '';
         db.transaction("sales").objectStore("sales").getAll().onsuccess = e => { 
             const sales = e.target.result;
-            
             if(currentSort === 'time') {
                 sales.reverse().slice(0, 50).forEach(h => { 
-                    logs.innerHTML += `<div class="list-item">
-                        <span><small>${h.date} ${h.time}</small><br><b>${h.total.toLocaleString()} so'm</b></span>
-                        <button onclick='viewOldChek(${JSON.stringify(h.items)})' style="background:var(--dark); color:white; border:none; padding:8px 12px; border-radius:8px;">👁</button>
-                    </div>`; 
+                    logs.innerHTML += `<div class="list-item"><span><small>${h.date} ${h.time}</small><br><b>${h.total.toLocaleString()} so'm</b></span></div>`; 
                 }); 
-            } else if(currentSort === 'all_items') {
-                // Yangi rejim: Umumiy savdo lentasi
-                let allFlat = [];
-                sales.forEach(s => s.items.forEach(i => allFlat.push({...i, time: s.time, date: s.date, ts: s.ts})));
-                allFlat.sort((a,b) => b.ts - a.ts).slice(0, 100).forEach(item => {
-                    logs.innerHTML += `<div class="feed-item">
-                        <span><small>${item.time}</small> <b>${item.name}</b></span>
-                        <span><b>${item.weight} kg</b> / <small>${item.total.toLocaleString()}</small></span>
-                    </div>`;
-                });
-            } else {
+            } else if(currentSort === 'product') {
                 let stats = {};
-                sales.forEach(s => s.items.forEach(i => {
-                    if(!stats[i.name]) stats[i.name] = { w: 0, s: 0 };
-                    stats[i.name].w += i.weight;
-                    stats[i.name].s += i.total;
-                }));
-                Object.keys(stats).forEach(name => {
-                    logs.innerHTML += `<div class="stat-card">
-                        <div style="font-weight:800; font-size:16px;">${name}</div>
-                        <div style="display:flex; justify-content:space-between; margin-top:5px;">
-                            <span>Vazn: <b>${stats[name].w.toFixed(2)} kg</b></span>
-                            <span style="color:var(--main)">Summa: <b>${stats[name].s.toLocaleString()}</b></span>
-                        </div>
-                    </div>`;
-                });
+                sales.forEach(s => s.items.forEach(i => { if(!stats[i.name]) stats[i.name]={w:0, s:0}; stats[i.name].w+=i.weight; stats[i.name].s+=i.total; }));
+                Object.keys(stats).forEach(k => { logs.innerHTML += `<div class="list-item"><b>${k}</b><span>${stats[k].w.toFixed(2)}kg / ${stats[k].s.toLocaleString()}</span></div>`; });
+            } else {
+                sales.forEach(s => s.items.forEach(i => { logs.innerHTML += `<div class="list-item" style="font-size:12px"><span>${s.time} - <b>${i.name}</b></span><b>${i.weight}kg</b></div>`; }));
             }
         };
     }
-
-    function viewOldChek(items) { showReceipt(items); }
-    function clearAllData() { if(confirm("Tarixni butunlay o'chirilsinmi?")) { db.transaction("sales", "readwrite").objectStore("sales").clear(); renderHistory(); } }
-
-    function exportByRange(days) {
-        closeModal('exportModal');
-        db.transaction("sales").objectStore("sales").getAll().onsuccess = e => {
-            let sales = e.target.result;
-            if(days !== 'all') sales = sales.filter(s => (Date.now() - s.ts) <= 86400000);
-            if(!sales.length) return alert("Hujjat bo'sh!");
-            let data = [], merges = [], row1 = [], row2 = [], blocks = {};
-            sales.forEach(s => s.items.forEach(i => { if(!blocks[i.name]) blocks[i.name]=[]; blocks[i.name].push({t: s.date+" "+s.time, w: i.weight, s: i.total}); }));
-            let names = Object.keys(blocks); let maxR = 0;
-            names.forEach((n, i) => { let c=i*3; row1[c]=n; merges.push({s:{r:0,c:c},e:{r:0,c:c+2}}); row2[c]="Vaqt"; row2[c+1]="Vazn"; row2[c+2]="Summa"; maxR = Math.max(maxR, blocks[n].length); });
-            data.push(row1, row2);
-            for(let r=0; r<maxR; r++) { let row=[]; names.forEach((n,i)=>{ let c=i*3; if(blocks[n][r]){ row[c]=blocks[n][r].t; row[c+1]=blocks[n][r].w; row[c+2]=blocks[n][r].s; } }); data.push(row); }
-            const ws = XLSX.utils.aoa_to_sheet(data); ws['!merges']=merges;
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
-            XLSX.writeFile(wb, `Kassa_Hisobot.xlsx`);
-        };
-    }
+    function clearAllData() { if(confirm("Tarix o'chirilsinmi?")) { db.transaction("sales", "readwrite").objectStore("sales").clear(); renderHistory(); } }
 </script>
 </body>
 </html>
