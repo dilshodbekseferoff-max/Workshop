@@ -3,36 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kassa Pro Elite v27</title>
+    <title>Kassa Pro Elite v28</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
         :root { --main: #10b981; --bg: #f8fafc; --dark: #1e293b; --danger: #ef4444; --edit: #f59e0b; --blue: #3b82f6; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-bottom: 150px; color: var(--dark); overflow-x: hidden; }
-        
         .page { display: none; padding: 20px; box-sizing: border-box; }
         .active-page { display: block; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .prod-card { background: #fff; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; transition: 0.1s; }
-        .prod-card:active { transform: scale(0.95); }
-
         .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #fff; display: flex; border-top: 1px solid #e2e8f0; z-index: 1000; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; color: #94a3b8; font-size: 11px; }
         .nav-active { color: var(--main); }
-
         .action-bar { position: fixed; bottom: 80px; left: 15px; right: 15px; display: flex; gap: 10px; z-index: 999; transition: 0.3s; }
         .btn-cart { flex: 1; background: var(--blue); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-pay { flex: 2; background: var(--dark); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; font-size: 16px; }
         .hidden-bar { transform: translateY(150px); opacity: 0; }
-
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index: 1100; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 92%; padding: 25px; border-radius: 24px; max-height: 85vh; overflow-y: auto; }
         .btn { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
-        
         .list-item { display: flex; justify-content: space-between; background: white; padding: 16px; margin-bottom: 10px; border-radius: 16px; border: 1px solid #f1f5f9; align-items: center; }
-        .cart-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
         .edit-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 8px; margin-left: 5px; }
     </style>
 </head>
@@ -47,7 +39,7 @@
         <h2>Ombor 📦</h2>
         <div style="background: white; padding: 18px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
             <input type="hidden" id="editOldName">
-            <input type="text" id="pName" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="Mahsulot nomi">
+            <input type="text" id="pName" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="Nomi">
             <input type="number" id="pPrice" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="Narxi">
             <button class="btn" onclick="saveProduct()">Saqlash</button>
             <button id="cancelBtn" class="btn" style="background:#94a3b8; margin-top:5px; display:none;" onclick="resetForm()">Bekor</button>
@@ -57,14 +49,12 @@
 
     <div id="historyPage" class="page">
         <h2>Analitika 📜</h2>
-        <div style="display:flex; gap:5px; margin-bottom:15px; overflow-x: auto; padding-bottom:5px;">
+        <div style="display:flex; gap:5px; margin-bottom:15px;">
             <button class="btn" style="padding:10px; font-size:11px; flex:1" onclick="setSort('time')">🕒 Vaqt</button>
             <button class="btn" style="padding:10px; font-size:11px; flex:1; background:var(--dark)" onclick="setSort('all_items')">📜 Umumiy</button>
             <button class="btn" style="padding:10px; font-size:11px; flex:1; background:var(--edit)" onclick="setSort('product')">🍎 Mahsulot</button>
         </div>
-        
         <div id="historyLogs"></div>
-
         <div style="margin-top:20px; display:flex; gap:10px;">
             <button class="btn" style="background:var(--blue); flex:1" onclick="openModal('exportModal')">📥 EXCEL</button>
             <button class="btn" style="background:var(--danger); flex:1" onclick="clearAllData()">🗑 TOZALASH</button>
@@ -83,18 +73,15 @@
     </div>
 
     <div id="weightModal" class="modal"><div class="modal-content" style="text-align:center"><h3 id="selectedName"></h3><input type="number" id="vaznField" style="width:100%; padding:15px; font-size:22px; border-radius:12px; border:1px solid #ddd;" placeholder="0.00 kg" step="0.01"><button class="btn" style="margin-top:15px" onclick="confirmWeight()">TASDIQLASH</button><button class="btn" style="background:#f1f5f9; color:#444; margin-top:10px;" onclick="closeModal('weightModal')">BEKOR</button></div></div>
-    
     <div id="cartModal" class="modal"><div class="modal-content"><h3 style="margin-top:0">Savat 🛒</h3><div id="cartItemsList"></div><button class="btn" style="margin-top:20px" onclick="closeModal('cartModal')">YOPISH</button></div></div>
-
     <div id="chekModal" class="modal"><div class="modal-content"><div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:10px; margin-bottom:10px;"><b>XARID CHEKI</b></div><div id="chekItems"></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="chekTotal"></span></div><button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ TASDIQLASH</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">BEKOR</button></div></div>
-
     <div id="exportModal" class="modal"><div class="modal-content"><h3>Eksport oralig'i</h3><button class="btn" onclick="exportByRange(1)" style="margin-bottom:10px">Bugun (Excel)</button><button class="btn" onclick="exportByRange('all')" style="background:var(--dark)">Hammasi (Excel)</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Yopish</button></div></div>
 
 <script>
     let db, cart = [], selected = null, currentSort = 'time', editIndex = null;
     const formatMoney = n => new Intl.NumberFormat('uz-UZ').format(n) + " so'm";
 
-    const req = indexedDB.open("KassaDB_V27", 1);
+    const req = indexedDB.open("KassaDB_V28", 1);
     req.onupgradeneeded = e => {
         let d = e.target.result;
         d.createObjectStore("items", { keyPath: "name" });
@@ -117,7 +104,7 @@
         const list = document.getElementById('cartItemsList');
         list.innerHTML = cart.length ? '' : '<p style="text-align:center; color:#94a3b8">Savat bo\'sh</p>';
         cart.forEach((item, idx) => {
-            list.innerHTML += `<div class="cart-row"><span style="flex:1"><b>${item.name}</b><br><small>${item.weight} kg x ${item.price.toLocaleString()}</small></span><b>${item.total.toLocaleString()}</b><button class="edit-btn" onclick="startEdit(${idx})">✏️</button><button class="edit-btn" style="color:var(--danger)" onclick="removeFromCart(${idx})">🗑</button></div>`;
+            list.innerHTML += `<div class="list-item" style="border:none; border-bottom:1px solid #eee; border-radius:0"><span><b>${item.name}</b><br><small>${item.weight} kg x ${item.price.toLocaleString()}</small></span><b>${item.total.toLocaleString()}</b><div><button class="edit-btn" onclick="startEdit(${idx})">✏️</button><button class="edit-btn" style="color:var(--danger)" onclick="removeFromCart(${idx})">🗑</button></div></div>`;
         });
         openModal('cartModal');
     }
@@ -217,6 +204,18 @@
                 data.push(row);
             }
 
+            // JAMI QATORINI QO'SHISH
+            let totalRow = [];
+            names.forEach((n, i) => {
+                let col = i * 3;
+                let totalW = blocks[n].reduce((sum, item) => sum + item.w, 0);
+                let totalS = blocks[n].reduce((sum, item) => sum + item.s, 0);
+                totalRow[col] = "JAMI:";
+                totalRow[col+1] = totalW.toFixed(2);
+                totalRow[col+2] = totalS;
+            });
+            data.push(totalRow);
+
             const ws = XLSX.utils.aoa_to_sheet(data);
             ws['!merges'] = merges;
             const wb = XLSX.utils.book_new();
@@ -225,7 +224,7 @@
         };
     }
 
-    // OMBOR (O'zgarmadi)
+    // OMBOR
     function saveProduct() {
         let n = document.getElementById('pName').value, p = parseFloat(document.getElementById('pPrice').value), old = document.getElementById('editOldName').value;
         if(!n || !p) return;
@@ -238,9 +237,7 @@
         const list = document.getElementById('inventoryList'); list.innerHTML = '';
         db.transaction("items").objectStore("items").getAll().onsuccess = e => {
             e.target.result.forEach(p => { 
-                list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small>${formatMoney(p.price)}</small></span>
-                <div><button onclick="editItem('${p.name}', ${p.price})" class="edit-btn">✏️</button>
-                <button onclick="deleteItem('${p.name}')" class="edit-btn" style="color:var(--danger)">🗑</button></div></div>`;
+                list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small>${formatMoney(p.price)}</small></span><div><button onclick="editItem('${p.name}', ${p.price})" class="edit-btn">✏️</button><button onclick="deleteItem('${p.name}')" class="edit-btn" style="color:var(--danger)">🗑</button></div></div>`;
             });
         };
     }
