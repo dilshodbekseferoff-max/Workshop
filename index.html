@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yandex Taxi / Taksometr kloni</title>
+    <title>Taksometr Pro Fullscreen</title>
     <style>
         * {
             box-sizing: border-box;
@@ -20,7 +20,7 @@
             height: 100vh;
         }
         
-        /* Telefon ekrani shaklidagi asosiy konteyner */
+        /* Asosiy konteyner - Status barsiz, to'liq ekran */
         .phone-container {
             width: 100%;
             max-width: 430px;
@@ -34,20 +34,11 @@
             overflow: hidden;
         }
 
-        /* 1. STATUS BAR & HEADER */
-        .status-bar {
-            background-color: #5188b8;
-            color: white;
-            padding: 12px 16px 4px 16px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            font-weight: 500;
-        }
+        /* 1. HEADER (Status barsiz) */
         .header {
             background-color: #5188b8;
             color: white;
-            padding: 10px 16px 14px 16px;
+            padding: 18px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -102,13 +93,17 @@
         .btn-red { background-color: #d32f2f; }
         .top-btn svg { width: 34px; height: 34px; fill: white; }
 
-        /* 3. MANZIL PANEL */
+        /* 3. MANZIL PANEL (O'zgartirsa bo'ladigan) */
         .address-panel {
             background-color: #e8e8f0;
             margin: 0 12px;
             padding: 8px 12px 12px 12px;
             border-radius: 4px;
             position: relative;
+            cursor: pointer;
+        }
+        .address-panel:active {
+            background-color: #dadae5;
         }
         .address-lbl {
             font-size: 14px;
@@ -207,9 +202,6 @@
             cursor: pointer;
             letter-spacing: 0.5px;
         }
-        .main-action-btn.active-ride {
-            background-color: #1976d2; /* Rasmdagi ko'k rang saqlanadi */
-        }
 
         /* ZAGRUZKA (YUKLANISH) EFFEKTI */
         .loader-screen {
@@ -243,11 +235,6 @@
 
     <div class="phone-container">
         <div>
-            <div class="status-bar">
-                <div>20:13 🚗 📥</div>
-                <div>📶 📶 📶 🔋 39</div>
-            </div>
-
             <div class="header">
                 <div class="header-left">
                     <div class="menu-icon">
@@ -275,9 +262,9 @@
                 </div>
             </div>
 
-            <div class="address-panel">
+            <div class="address-panel" id="address-click-area">
                 <div class="address-lbl">Манзил:</div>
-                <div class="address-val" id="gps-status">----</div>
+                <div class="address-val" id="address-text">----</div>
                 <div class="arrow-up"></div>
             </div>
         </div>
@@ -288,68 +275,30 @@
 
         <div>
             <div class="options-grid">
-                <div class="opt-box">
-                    <svg viewBox="0 0 24 24"><path d="M19 8h-2v3h-3v2h3v3h2v-3h3v-2h-3zM12 8H4c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2zm0 10H4v-6h8v6z"/></svg>
-                    Ортиқча юк
-                </div>
-                <div class="opt-box">
-                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z"/></svg>
-                    Кондиц.
-                </div>
-                <div class="opt-box">
-                    <svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4zm7 15H7V8h10v11z"/></svg>
-                    Юкхона
-                </div>
-                <div class="opt-box">
-                    <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-                    Том багаж
-                </div>
-                <div class="opt-box">
-                    <svg viewBox="0 0 24 24"><path d="M12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6m0-2C7.05 4 2.98 7.67 2.1 12.34 1.15 13.06 0 14.54 0 16c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96C18.67 6.59 15.64 4 12 4z"/></svg>
-                    Ёмон ҳаво
-                </div>
-                <div class="opt-box">
-                    <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                    Етказма
-                </div>
+                <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M19 8h-2v3h-3v2h3v3h2v-3h3v-2h-3zM12 8H4c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2zm0 10H4v-6h8v6z"/></svg>Ортиқча юк</div>
+                <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z"/></svg>Кондиц.</div>
+                <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M17 6h-2V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4zm7 15H7V8h10v11z"/></svg>Юкхона</div>
+                <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>Том багаж</div>
+                <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6m0-2C7.05 4 2.98 7.67 2.1 12.34 1.15 13.06 0 14.54 0 16c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96C18.67 6.59 15.64 4 12 4z"/></svg>Ёмон ҳаво</div>
+                <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>Етказма</div>
             </div>
 
             <div class="stats-container">
                 <div class="stat-box">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="#f1a100"><path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.28-10.43zM10.59 15.41a2 2 0 1 0 2.83-2.83 2 2 0 0 0-2.83 2.83zm6.31-6.31L13.5 11.5a2.43 2.43 0 0 0-.87-.41l3.18-4.78 1.09.8z"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-num" id="speed-display">20</div>
-                        <div class="stat-unit">км...</div>
-                    </div>
+                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="#f1a100"><path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 15.58 6.85l1.85-1.23A10 10 0 0 0 3.35 19a2 2 0 0 0 1.72 1h13.85a2 2 0 0 0 1.74-1 10 10 0 0 0-.28-10.43zM10.59 15.41a2 2 0 1 0 2.83-2.83 2 2 0 0 0-2.83 2.83zm6.31-6.31L13.5 11.5a2.43 2.43 0 0 0-.87-.41l3.18-4.78 1.09.8z"/></svg></div>
+                    <div class="stat-info"><div class="stat-num" id="speed-display">0</div><div class="stat-unit">км/с</div></div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="#f1a100"><path d="M19.5 2H4.5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-6 18h-3v-3h3v3zm0-5h-3v-3h3v3zm0-5h-3V7h3v3z"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-num" id="distance-display">0,0</div>
-                        <div class="stat-unit">км</div>
-                    </div>
+                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="#f1a100"><path d="M19.5 2H4.5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-6 18h-3v-3h3v3zm0-5h-3v-3h3v3zm0-5h-3V7h3v3z"/></svg></div>
+                    <div class="stat-info"><div class="stat-num" id="distance-display">0,0</div><div class="stat-unit">км</div></div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="#f1a100"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-num" id="wait-display">00:00</div>
-                        <div class="stat-unit">...</div>
-                    </div>
+                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="#f1a100"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div>
+                    <div class="stat-info"><div class="stat-num" id="wait-display">00:00</div><div class="stat-unit">...</div></div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="#f1a100"><path d="M4 14h16v2H4zm0-4h16v2H4zm0-4h16v2H4zm0 12h16v2H4z"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-num">0,0</div>
-                        <div class="stat-unit">км</div>
-                    </div>
+                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="#f1a100"><path d="M4 14h16v2H4zm0-4h16v2H4zm0-4h16v2H4zm0 12h16v2H4z"/></svg></div>
+                    <div class="stat-info"><div class="stat-num">0,0</div><div class="stat-unit">км</div></div>
                 </div>
             </div>
 
@@ -363,14 +312,16 @@
     </div>
 
     <script>
-        // Tarif parametrlari
+        // Tarif konstantalari
         const BASE_START_FARE = 20000;
         const COST_PER_KM = 4000;
         const COST_PER_MIN_WAIT = 2000;
+        const WAIT_STEP_SECONDS = 40; // Hisob har 40 soniyada o'zgaradi
 
-        let status = "IDLE"; // IDLE, ACTIVE
+        let status = "IDLE"; 
         let currentFarePrice = 0;
         let driveDistanceKm = 0;
+        let totalSecondsElapsed = 0;
         let waitTimeSeconds = 0;
 
         let trackingInterval = null;
@@ -383,11 +334,17 @@
         const distanceDisplay = document.getElementById('distance-display');
         const waitDisplay = document.getElementById('wait-display');
         const loaderScreen = document.getElementById('loader-screen');
-        const gpsStatusText = document.getElementById('gps-status');
+        const addressText = document.getElementById('address-text');
+        const addressClickArea = document.getElementById('address-click-area');
         const headerStatusText = document.getElementById('header-status-text');
 
-        // Boshlang'ich qiymat
-        fareText.textContent = "0";
+        // Manzilni o'zgartirish funksiyasi
+        addressClickArea.addEventListener('click', () => {
+            let newAddress = prompt("Yangi manzilni kiriting:", addressText.textContent === "----" ? "" : addressText.textContent);
+            if (newAddress !== null && newAddress.trim() !== "") {
+                addressText.textContent = newAddress;
+            }
+        });
 
         actionBtn.addEventListener('click', () => {
             if (status === "IDLE") {
@@ -400,11 +357,11 @@
         function startRideMode() {
             status = "ACTIVE";
             actionBtn.textContent = "БУЮРТМАНИ ЁПИШ";
-            actionBtn.classList.add('active-ride');
             headerStatusText.textContent = "Жорий буюртма";
 
             currentFarePrice = BASE_START_FARE;
             driveDistanceKm = 0;
+            totalSecondsElapsed = 0;
             waitTimeSeconds = 0;
             startLocation = null;
             
@@ -416,48 +373,52 @@
                     enableHighAccuracy: true,
                     maximumAge: 0
                 });
-                gpsStatusText.textContent = "GPS Yoqilgan";
-            } else {
-                gpsStatusText.textContent = "GPS qo'llab-quvvatlanmaydi";
             }
 
-            // Har soniyada vaqtni yangilash
+            // Real-taym taymer (Har soniyada ishlaydi)
             trackingInterval = setInterval(() => {
+                totalSecondsElapsed++;
                 let currentSpeedKmH = startLocation && startLocation.coords.speed ? startLocation.coords.speed * 3.6 : 0;
                 
                 if (currentSpeedKmH < 2) { 
                     waitTimeSeconds++;
-                    currentFarePrice += (COST_PER_MIN_WAIT / 60);
+                    
+                    // Har 40 soniyada pulga kutish narxi qo'shiladi
+                    if (waitTimeSeconds % WAIT_STEP_SECONDS === 0) {
+                        // 40 soniya uchun pul: (2000 / 60) * 40 = 1333.33 so'm
+                        currentFarePrice += (COST_PER_MIN_WAIT / 60) * WAIT_STEP_SECONDS;
+                    }
                 }
                 refreshScreenUI();
             }, 1000);
         }
 
         function triggerFinishWithLoader() {
-            // Taymer va GPS larni to'xtatish
             if (locationWatcher) navigator.geolocation.clearWatch(locationWatcher);
             if (trackingInterval) clearInterval(trackingInterval);
 
-            // Zagruzka ekranini yoqish
             loaderScreen.style.display = "flex";
 
             setTimeout(() => {
-                // 3 soniyadan keyin yuklanish tugaydi
                 loaderScreen.style.display = "none";
                 status = "IDLE";
                 actionBtn.textContent = "Boshlash";
-                actionBtn.classList.remove('active-ride');
                 headerStatusText.textContent = "Бажарилди: 9/0/9";
-                gpsStatusText.textContent = "----";
 
-                alert(`Safar muvaffaqiyatli yakunlandi!\nUmumiy summa: ${Math.round(currentFarePrice).toLocaleString('uz-UZ').replace(/,/g, ' ')} so'm`);
+                // Yakuniy yopilishda ham 100 so'mga yaxlitlangan holatda ogohlantirish beradi
+                let finalRoundedPrice = Math.round(currentFarePrice / 100) * 100;
+                alert(`Safar muvaffaqiyatli yakunlandi!\nUmumiy summa: ${finalRoundedPrice.toLocaleString('uz-UZ').replace(/,/g, ' ')} so'm`);
                 
                 currentFarePrice = 0;
                 driveDistanceKm = 0;
                 waitTimeSeconds = 0;
-                refreshScreenUI();
+                totalSecondsElapsed = 0;
+                
+                // Ekrandagi ma'lumotlarni 0 holatiga qaytarish
                 fareText.textContent = "0";
-                speedDisplay.textContent = "20";
+                speedDisplay.textContent = "0";
+                distanceDisplay.textContent = "0,0";
+                waitDisplay.textContent = "00:00";
             }, 3000);
         }
 
@@ -503,9 +464,13 @@
         }
 
         function refreshScreenUI() {
-            fareText.textContent = Math.round(currentFarePrice).toLocaleString('uz-UZ').replace(/,/g, ' ');
-            distanceDisplay.textContent = driveDistanceKm.toFixed(1).replace('.', ',');
-            waitDisplay.textContent = convertToMinSec(waitTimeSeconds);
+            if (status === "ACTIVE") {
+                // Matematik 100 ga yaxlitlash (Masalan: 21340 -> 21300, 21360 -> 21400)
+                let roundedPrice = Math.round(currentFarePrice / 100) * 100;
+                fareText.textContent = roundedPrice.toLocaleString('uz-UZ').replace(/,/g, ' ');
+                distanceDisplay.textContent = driveDistanceKm.toFixed(1).replace('.', ',');
+                waitDisplay.textContent = convertToMinSec(waitTimeSeconds);
+            }
         }
     </script>
 </body>
