@@ -2,309 +2,337 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kassa Pro Online v55</title>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taksometr Pro</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        :root { --main: #10b981; --bg: #f8fafc; --dark: #1e293b; --danger: #ef4444; --edit: #f59e0b; --blue: #3b82f6; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-bottom: 150px; color: var(--dark); overflow-x: hidden; }
-        .page { display: none; padding: 20px; box-sizing: border-box; }
-        .active-page { display: block; animation: fadeIn 0.2s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .prod-card { background: #fff; padding: 18px 12px; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; cursor: pointer; }
-        .nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #fff; display: flex; border-top: 1px solid #e2e8f0; z-index: 1000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 600; color: #94a3b8; font-size: 11px; cursor: pointer; }
-        .nav-active { color: var(--main); }
-        .action-bar { position: fixed; bottom: 80px; left: 15px; right: 15px; display: flex; gap: 10px; z-index: 999; transition: 0.3s; }
-        .btn-cart { flex: 1; background: var(--blue); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-        .btn-pay { flex: 2; background: var(--dark); color: white; border: none; border-radius: 14px; height: 55px; font-weight: 700; font-size: 16px; cursor: pointer; }
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index: 1100; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 92%; padding: 25px; border-radius: 24px; max-height: 85vh; overflow-y: auto; }
-        .btn { background: var(--main); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
-        .list-item { display: flex; justify-content: space-between; background: white; padding: 16px; margin-bottom: 10px; border-radius: 16px; border: 1px solid #f1f5f9; align-items: center; }
-        .edit-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 8px; margin-left: 5px; cursor: pointer; }
-        .note-text { font-size: 11px; color: var(--edit); font-style: italic; display: block; margin-top: 4px; border-left: 2px solid var(--edit); padding-left: 5px; }
-        textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #f5f5f7;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            justify-content: space-between;
+        }
+        /* Yuqori qism */
+        .header {
+            background-color: #5188b8;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .header-menu { margin-right: 15px; font-size: 22px; cursor: pointer; }
+        
+        /* To'rtburchak rangli tugmalar */
+        .top-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .btn-box {
+            height: 60px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .bg-green { background-color: #3b8b3e; }
+        .bg-orange { background-color: #f1a100; }
+        .bg-blue { background-color: #1976d2; }
+        .bg-red { background-color: #d32f2f; }
+
+        /* Manzil qismi */
+        .address-box {
+            background-color: #e0e0e6;
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Asosiy Ekran - Katta Raqam */
+        .main-fare {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 85px;
+            font-weight: 700;
+            color: #61a665;
+            background-color: #fafafa;
+        }
+
+        /* Indikatorlar (Oshiqcha yuk, konditsioner va h.k.) */
+        .indicators {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2px;
+            background-color: #ddd;
+            padding: 2px 10px;
+        }
+        .ind-item {
+            background-color: #e8e8f0;
+            padding: 8px 2px;
+            text-align: center;
+            font-size: 9px;
+            color: #888;
+        }
+        .ind-item span { display: block; font-size: 14px; margin-bottom: 2px; }
+
+        /* Statistika paneli */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .stat-card {
+            background-color: #e8e8f0;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stat-val {
+            font-size: 22px;
+            font-weight: bold;
+            color: #111;
+        }
+        .stat-lbl {
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Pastki Asosiy Tugma */
+        .action-btn {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .action-btn.active {
+            background-color: #d32f2f;
+        }
     </style>
 </head>
 <body>
 
-    <div id="salePage" class="page active-page">
-        <h2 style="margin:0 0 15px 0">Savdo 🛒 <small id="syncStatus" style="font-size: 10px; color: var(--main); float: right;">Bulutga ulangan ☁️</small></h2>
-        <div id="productGrid" class="grid"></div>
+    <div class="header">
+        <span class="header-menu">☰</span>
+        <span>Buyurtma holati</span>
     </div>
 
-    <div id="prodPage" class="page">
-        <h2>Ombor 📦</h2>
-        <div style="background: white; padding: 18px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
-            <input type="hidden" id="editOldName">
-            <input type="text" id="pName" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="Nomi">
-            <input type="number" id="pPrice" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="Narxi">
-            <button class="btn" onclick="saveProduct()">Saqlash</button>
-            <button id="cancelBtn" class="btn" style="background:#94a3b8; margin-top:5px; display:none;" onclick="resetForm()">Bekor</button>
+    <div class="top-buttons">
+        <div class="btn-box bg-green">📞</div>
+        <div class="btn-box bg-orange">📍</div>
+        <div class="btn-box bg-blue">⏱</div>
+        <div class="btn-box bg-red">🚫</div>
+    </div>
+
+    <div class="address-box">
+        <div>Manzil:</div>
+        <strong id="gps-status">GPS kutilmoqda...</strong>
+    </div>
+
+    <div class="main-fare" id="fare-display">0</div>
+
+    <div class="indicators">
+        <div class="ind-item"><span>📦</span>Yuk</div>
+        <div class="ind-item"><span>❄️</span>Kond.</div>
+        <div class="ind-item"><span>🧳</span>Yukxona</div>
+        <div class="ind-item"><span>🛞</span>Tom</div>
+        <div class="ind-item"><span>🌧</span>Yomon havo</div>
+        <div class="ind-item"><span>🛒</span>Etkazma</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-row"><span class="stat-lbl">⚡ Tezlik:</span><span class="stat-val" id="speed">0 km/s</span></div>
         </div>
-        <div id="inventoryList"></div>
-    </div>
-
-    <div id="historyPage" class="page">
-        <h2>Analitika 📜</h2>
-        <div style="display:flex; gap:5px; margin-bottom:15px;">
-            <button class="btn" style="padding:10px; font-size:11px; flex:1" onclick="setSort('time')">🕒 Cheklar</button>
-            <button class="btn" style="padding:10px; font-size:11px; flex:1; background:var(--edit)" onclick="setSort('product')">🍎 Mahsulotlar</button>
+        <div class="stat-card">
+            <div class="stat-row"><span class="stat-lbl">🛣 Masofa:</span><span class="stat-val" id="distance">0.0 km</span></div>
         </div>
-        <div id="historyLogs"></div>
-        <div style="margin-top:20px; display:flex; gap:10px;">
-            <button class="btn" style="background:var(--blue); flex:1" onclick="openModal('exportModal')">📥 EXPORT</button>
-            <button class="btn" style="background:var(--danger); flex:1" onclick="clearAllData()">🗑 TOZALASH</button>
+        <div class="stat-card">
+            <div class="stat-row"><span class="stat-lbl">⏱ Kutish:</span><span class="stat-val" id="wait-time">00:00</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-row"><span class="stat-lbl">🚕 Umumiy:</span><span class="stat-val" id="total-time">00:00</span></div>
         </div>
     </div>
 
-    <div id="actionBar" class="action-bar">
-        <button class="btn-cart" onclick="openCart()">🛒 <span id="cartCount">0</span></button>
-        <button class="btn-pay" onclick="showReceipt()">TO'LOV ➔</button>
-    </div>
+    <button class="action-btn" id="main-toggle-btn">Boshlash</button>
 
-    <div class="nav">
-        <div class="nav-item nav-active" onclick="openTab('salePage', this)"><span>SOTUV</span></div>
-        <div class="nav-item" onclick="openTab('prodPage', this)"><span>OMBOR</span></div>
-        <div class="nav-item" onclick="openTab('historyPage', this)"><span>TARIX</span></div>
-    </div>
+    <script>
+        // Tariff sozlamalari
+        const START_FARE = 20000;      // Boshlang'ich narx
+        const PER_KM_FARE = 4000;      // 1 km uchun narx
+        const PER_MIN_WAIT_FARE = 2000;// 1 daqiqa kutish uchun narx
 
-    <div id="weightModal" class="modal"><div class="modal-content" style="text-align:center"><h3 id="selectedName"></h3><input type="number" id="vaznField" style="width:100%; padding:15px; font-size:22px; border-radius:12px; border:1px solid #ddd;" placeholder="0.00 kg" step="0.01"><button class="btn" style="margin-top:15px" onclick="confirmWeight()">TASDIQLASH</button><button class="btn" style="background:#f1f5f9; color:#444; margin-top:10px;" onclick="closeModal('weightModal')">BEKOR</button></div></div>
-    <div id="cartModal" class="modal"><div class="modal-content"><h3>Savat 🛒</h3><div id="cartItemsList"></div><button class="btn" style="margin-top:20px" onclick="closeModal('cartModal')">YOPISH</button></div></div>
-    <div id="chekModal" class="modal"><div class="modal-content"><h3>Xarid Cheki</h3><div id="chekItems"></div><div style="margin-top:15px"><label style="font-size:12px; font-weight:600">CHEK UCHUN IZOH:</label><textarea id="saleNote" rows="2" placeholder="Xaridor ismi yoki eslatma..."></textarea></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="chekTotal"></span></div><button class="btn" style="margin-top:20px;" onclick="finishSale()">✅ TASDIQLASH</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('chekModal')">BEKOR</button></div></div>
-    <div id="viewChekModal" class="modal"><div class="modal-content"><div id="viewChekItems"></div><div id="viewChekNote" style="margin-top:10px; padding:10px; background:#fff9e6; border-radius:8px; font-size:12px; display:none;"></div><div style="border-top:1px dashed #000; margin-top:10px; padding-top:10px; font-weight:bold; font-size:20px; text-align:right;">JAMI: <span id="viewChekTotal"></span></div><button class="btn" style="margin-top:20px; background:var(--dark)" onclick="closeModal('viewChekModal')">YOPISH</button></div></div>
-    <div id="exportModal" class="modal"><div class="modal-content"><h3>Eksport oralig'i</h3><button class="btn" onclick="exportByRange(1)" style="margin-bottom:10px">Bugun (Excel)</button><button class="btn" onclick="exportByRange('all')" style="background:var(--dark)">Hammasi (Excel)</button><button class="btn" style="background:var(--danger); margin-top:10px;" onclick="closeModal('exportModal')">Yopish</button></div></div>
-    
-<script defer src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-<script defer src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+        // O'zgaruvchilar
+        let isRunning = false;
+        let totalFare = 0;
+        let totalDistance = 0; // kilometrda
+        let totalWaitSeconds = 0;
+        let totalSeconds = 0;
+        
+        let lastPosition = null;
+        let watchId = null;
+        let timerInterval = null;
 
-<script>
-    // 1. FIREBASE INTEGRATSIYASI (SIZNING ANIQLANGAN MALUMOTLARINGIZ)
-    const firebaseConfig = {
-        apiKey: "AIzaSyCGBJRv0qyxBn1hVwD9UzxIfGA_x_Yo4bA",
-        databaseURL: "https://kassa-pro-default-rtdb.firebaseio.com/",
-        projectId: "kassa-pro",
-        appId: "1:365253228642:web:2fc224389623136bb0793b"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const remoteDB = firebase.database();
+        const mainBtn = document.getElementById('main-toggle-btn');
+        const fareDisplay = document.getElementById('fare-display');
+        const speedDisplay = document.getElementById('speed');
+        const distanceDisplay = document.getElementById('distance');
+        const waitDisplay = document.getElementById('wait-time');
+        const gpsStatus = document.getElementById('gps-status');
 
-    let db, cart = [], selected = null, currentSort = 'time', editIndex = null;
-    const formatMoney = n => new Intl.NumberFormat('uz-UZ').format(n) + " so'm";
-
-    // 2. BAZANI OCHISH
-    const req = indexedDB.open("KassaDB_Cloud", 1);
-    req.onupgradeneeded = e => {
-        let d = e.target.result;
-        if (!d.objectStoreNames.contains("items")) d.createObjectStore("items", { keyPath: "name" });
-        if (!d.objectStoreNames.contains("sales")) d.createObjectStore("sales", { keyPath: "id", autoIncrement: true });
-    };
-
-    req.onsuccess = e => { 
-        db = e.target.result; 
-        checkAndAddDefaults();
-        listenToCloud();
-        refreshUI(); 
-    };
-
-    function checkAndAddDefaults() {
-        const defaults = [
-            { name: "Alumin", price: 16000 }, { name: "Alumin sim", price: 26000 },
-            { name: "Qizil", price: 108000 }, { name: "Yaltiroq", price: 115000 },
-            { name: "Lotun zavod", price: 60000 }, { name: "Lotun", price: 57000 }
-        ];
-        let tx = db.transaction("items", "readwrite");
-        let store = tx.objectStore("items");
-        store.getAll().onsuccess = e => {
-            const existing = e.target.result.map(i => i.name);
-            defaults.forEach(d => { if(!existing.includes(d.name)) store.add(d); });
-        };
-    }
-
-    // 3. ONLAYN SINXRONIZATSIYA
-    function listenToCloud() {
-        remoteDB.ref('sales').on('value', (snapshot) => {
-            const data = snapshot.val();
-            let tx = db.transaction("sales", "readwrite");
-            let store = tx.objectStore("sales");
-            store.clear();
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    let s = data[key];
-                    s.firebaseKey = key;
-                    store.add(s);
-                });
-            }
-            tx.oncomplete = () => renderHistory();
-        });
-    }
-
-    function finishSale() {
-    if(cart.length === 0) return;
-    
-    // Ma'lumotlarni tayyorlash
-    let t = cart.reduce((a, b) => a + b.total, 0), now = new Date();
-    let d = now.getDate().toString().padStart(2,'0') + "." + (now.getMonth()+1).toString().padStart(2,'0') + "." + now.getFullYear();
-    let tStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0') + ":" + now.getSeconds().toString().padStart(2,'0');
-    let note = document.getElementById('saleNote').value;
-    
-    let saleData = { date: d, time: tStr, items: [...cart], total: t, note: note, ts: now.getTime() };
-
-    // 1. Darhol interfeysni tozalaymiz (Kutib o'tirmaymiz)
-    cart = []; 
-    document.getElementById('cartCount').innerText = "0"; 
-    document.getElementById('saleNote').value = ''; 
-    closeModal('chekModal');
-
-    // 2. Serverga yuborishni orqa fonda bajaramiz
-    remoteDB.ref('sales').push(saleData)
-        .then(() => {
-            console.log("Muvaffaqiyatli sinxronlandi");
-        })
-        .catch(err => {
-            alert("Internet sust, lekin ma'lumot saqlandi!");
-            // Ma'lumot yo'qolmasligi uchun IndexedDB ga zaxira qilamiz
-            db.transaction("sales", "readwrite").objectStore("sales").add(saleData);
-        });
-}
-
-
-    function deleteSale(id) {
-        if(confirm("Ushbu chek barcha telefonlardan o'chirilsinmi?")) {
-            db.transaction("sales").objectStore("sales").get(id).onsuccess = e => {
-                const key = e.target.result.firebaseKey;
-                if(key) remoteDB.ref('sales/' + key).remove();
-            };
-        }
-    }
-
-    function clearAllData() {
-        if(confirm("Hamma onlayn tarixni butunlay tozalashni xohlaysizmi?")) {
-            remoteDB.ref('sales').remove();
-        }
-    }
-
-    // 4. STANDART FUNKSIYALAR
-    function openTab(tabId, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
-        document.getElementById(tabId).classList.add('active-page');
-        el.classList.add('nav-active');
-        const bar = document.getElementById('actionBar');
-        if(tabId === 'salePage') bar.classList.remove('hidden-bar'); else bar.classList.add('hidden-bar');
-    }
-
-    function renderHistory() {
-        const logs = document.getElementById('historyLogs'); logs.innerHTML = '';
-        db.transaction("sales").objectStore("sales").getAll().onsuccess = e => { 
-            let sales = e.target.result.sort((a,b) => (b.ts || 0) - (a.ts || 0));
-            if(currentSort === 'time') {
-                sales.forEach(h => { 
-                    logs.innerHTML += `<div class="list-item" style="flex-direction: column; align-items: flex-start;">
-                        <div style="width: 100%; display: flex; justify-content: space-between;">
-                            <span><small>${h.date} ${h.time}</small><br><b>${h.total.toLocaleString()} so'm</b></span>
-                            <div style="display:flex; gap:5px">
-                                <button onclick='viewOldSale(${JSON.stringify(h.items)}, ${h.total}, "${h.note || ''}")' class="edit-btn">👁</button>
-                                <button onclick='deleteSale(${h.id})' class="edit-btn" style="color:var(--danger)">🗑</button>
-                            </div>
-                        </div>
-                        ${h.note ? `<span class="note-text">📝 ${h.note}</span>` : ''}
-                    </div>`; 
-                }); 
+        // Boshlash / Tugatish hodisasi
+        mainBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                startTrip();
             } else {
-                let stats = {};
-                sales.forEach(s => s.items.forEach(i => { if(!stats[i.name]) stats[i.name]={w:0, s:0}; stats[i.name].w+=i.weight; stats[i.name].s+=i.total; }));
-                Object.keys(stats).sort((a,b) => stats[b].s - stats[a].s).forEach(k => { 
-                    logs.innerHTML += `<div class="list-item"><b>${k}</b><span>${stats[k].w.toFixed(2)}kg / ${stats[k].s.toLocaleString()}</span></div>`; 
-                });
+                stopTrip();
             }
-        };
-    }
-
-    function renderGrid() {
-        const grid = document.getElementById('productGrid'); grid.innerHTML = '';
-        db.transaction("items").objectStore("items").getAll().onsuccess = e => { 
-            e.target.result.forEach(p => { 
-                grid.innerHTML += `<div class="prod-card" onclick="openWeight('${p.name}', ${p.price})"><b>${p.name}</b><br><span style="color:var(--main)">${p.price.toLocaleString()}</span></div>`; 
-            }); 
-        };
-    }
-
-    function openWeight(n, p, idx = null) {
-        editIndex = idx; selected = { name: n, price: p };
-        document.getElementById('selectedName').innerText = n;
-        document.getElementById('vaznField').value = idx !== null ? cart[idx].weight : '';
-        openModal('weightModal'); setTimeout(() => document.getElementById('vaznField').focus(), 100);
-    }
-
-    function confirmWeight() {
-        let w = parseFloat(document.getElementById('vaznField').value); if(!w) return;
-        if(editIndex !== null) { cart[editIndex].weight = w; cart[editIndex].total = Math.round(cart[editIndex].price * w); editIndex = null; openCart(); }
-        else { cart.push({ ...selected, weight: w, total: Math.round(selected.price * w) }); }
-        document.getElementById('cartCount').innerText = cart.length; closeModal('weightModal');
-    }
-
-    function openCart() {
-        const list = document.getElementById('cartItemsList');
-        list.innerHTML = cart.length ? '' : '<p style="text-align:center; color:#94a3b8">Savat bo\'sh</p>';
-        cart.forEach((item, idx) => {
-            list.innerHTML += `<div class="list-item"><span><b>${item.name}</b><br><small>${item.weight} kg</small></span><b>${item.total.toLocaleString()}</b><div><button class="edit-btn" onclick="startEdit(${idx})">✏️</button><button class="edit-btn" style="color:var(--danger)" onclick="removeFromCart(${idx})">🗑</button></div></div>`;
         });
-        openModal('cartModal');
-    }
 
-    function showReceipt() {
-        if(cart.length === 0) return alert("Savat bo'sh!");
-        let t = 0;
-        let html = cart.map(i => { t += i.total; return `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`; }).join('');
-        document.getElementById('chekItems').innerHTML = html;
-        document.getElementById('chekTotal').innerText = t.toLocaleString() + " so'm";
-        openModal('chekModal');
-    }
+        function startTrip() {
+            isRunning = true;
+            mainBtn.textContent = "Buurtmani Yakunlash";
+            mainBtn.classList.add('active');
+            
+            // Hisobni dastlabki 20 000 so'm bilan yuklash
+            totalFare = START_FARE;
+            totalDistance = 0;
+            totalWaitSeconds = 0;
+            totalSeconds = 0;
+            lastPosition = null;
+            
+            updateUI();
 
-    function startEdit(idx) { closeModal('cartModal'); openWeight(cart[idx].name, cart[idx].price, idx); }
-    function removeFromCart(i) { cart.splice(i, 1); document.getElementById('cartCount').innerText = cart.length; openCart(); }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function setSort(s) { currentSort = s; renderHistory(); }
-    function resetForm() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('editOldName').value = ''; document.getElementById('cancelBtn').style.display = 'none'; }
-    function refreshUI() { renderGrid(); renderInventory(); renderHistory(); }
+            // GPS kuzatishni boshlash
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(updateLocation, handleGPSError, {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 5000
+                });
+                gpsStatus.textContent = "Kuzatuv faol (GPS Yoqilgan)";
+            } else {
+                gpsStatus.textContent = "GPS qurilmangizda ishlamaydi";
+            }
 
-    function renderInventory() {
-        const list = document.getElementById('inventoryList'); list.innerHTML = '';
-        db.transaction("items").objectStore("items").getAll().onsuccess = e => { e.target.result.forEach(p => { list.innerHTML += `<div class="list-item"><span><b>${p.name}</b><br><small>${formatMoney(p.price)}</small></span><div><button onclick="editItem('${p.name}', ${p.price})" class="edit-btn">✏️</button><button onclick="deleteItem('${p.name}')" class="edit-btn" style="color:var(--danger)">🗑</button></div></div>`; }); };
-    }
-    function editItem(n, p) { document.getElementById('pName').value = n; document.getElementById('pPrice').value = p; document.getElementById('editOldName').value = n; document.getElementById('cancelBtn').style.display = 'block'; }
-    function saveProduct() {
-        let n = document.getElementById('pName').value, p = parseFloat(document.getElementById('pPrice').value), old = document.getElementById('editOldName').value;
-        if(!n || !p) return;
-        let tx = db.transaction("items", "readwrite"); if(old && old !== n) tx.objectStore("items").delete(old);
-        tx.objectStore("items").put({ name: n, price: p }); tx.oncomplete = () => { resetForm(); refreshUI(); };
-    }
-    function deleteItem(n) { if(confirm("O'chirilsinmi?")) db.transaction("items", "readwrite").objectStore("items").delete(n).onsuccess = () => refreshUI(); }
-    function viewOldSale(items, total, note) {
-        document.getElementById('viewChekItems').innerHTML = items.map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:5px"><span>${i.name} (${i.weight}kg)</span><b>${i.total.toLocaleString()}</b></div>`).join('');
-        document.getElementById('viewChekTotal').innerText = total.toLocaleString() + " so'm";
-        const noteDiv = document.getElementById('viewChekNote');
-        if(note) { noteDiv.innerText = "Izoh: " + note; noteDiv.style.display = 'block'; } else { noteDiv.style.display = 'none'; }
-        openModal('viewChekModal');
-    }
-    function exportByRange(days) {
-        db.transaction("sales").objectStore("sales").getAll().onsuccess = e => {
-            let sales = e.target.result;
-            if(days !== 'all') sales = sales.filter(s => (Date.now() - s.ts) <= 86400000);
-            if(!sales.length) return alert("Ma'lumot yo'q!");
-            const ws = XLSX.utils.json_to_sheet(sales.map(s => ({ Sana: s.date, Vaqt: s.time, Summa: s.total, Izoh: s.note })));
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
-            XLSX.writeFile(wb, `Kassa_Hisobot.xlsx`);
-        };
-    }
-</script>
+            // Har soniyada vaqt va kutishni hisoblovchi taymer
+            timerInterval = setInterval(() => {
+                totalSeconds++;
+                
+                // Agar tezlik juda past bo'lsa (yoki 0 bo'lsa), uni kutish vaqti deb hisoblaymiz
+                // Bu erda joriy tezlikni tekshiramiz (metr/sekunddan km/soatga o'girilgan)
+                let currentSpeed = lastPosition && lastPosition.coords.speed ? lastPosition.coords.speed * 3.6 : 0;
+                
+                if (currentSpeed < 2) { // 2 km/soatdan past bo'lsa to'xtagan deb hisoblaydi
+                    totalWaitSeconds++;
+                    // Daqiqasiga 2000 so'm -> 1 soniyaga (2000 / 60) so'm qo'shiladi
+                    totalFare += (PER_MIN_WAIT_FARE / 60);
+                }
+
+                updateUI();
+            }, 1000);
+        }
+
+        function stopTrip() {
+            isRunning = false;
+            mainBtn.textContent = "Boshlash";
+            mainBtn.classList.remove('active');
+            gpsStatus.textContent = "Kuzatuv to'xtatildi.";
+            
+            if (watchId) navigator.geolocation.clearWatch(watchId);
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        // GPS orqali koordinatalar o'zgarganda ishlaydi
+        function updateLocation(position) {
+            if (!isRunning) return;
+
+            const currentCoords = position.coords;
+            // Tezlikni hisoblash (km/soatda)
+            let speedKmH = currentCoords.speed ? currentCoords.speed * 3.6 : 0;
+            if (speedKmH < 0) speedKmH = 0;
+            speedDisplay.textContent = `${speedKmH.toFixed(1)} km/s`;
+
+            if (lastPosition) {
+                const p1 = lastPosition.coords;
+                const p2 = currentCoords;
+                
+                // Ikki nuqta orasidagi masofani hisoblash (Xaverinus formulasi)
+                const distanceDelta = calculateDistance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
+                
+                // Agar tezlik harakatni ko'rsatsa masofani va pulni qo'shamiz
+                if (speedKmH >= 2 && distanceDelta > 0.002) { // kamida 2 metr harakat bo'lishi kerak jalb qilmaslik uchun
+                    totalDistance += distanceDelta;
+                    totalFare += distanceDelta * PER_KM_FARE;
+                }
+            }
+
+            lastPosition = position;
+            updateUI();
+        }
+
+        // Ikki GPS nuqtasi orasidagi aniq masofani hisoblash funksiyasi (Kilometrlarda)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Er radiusi km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function handleGPSError(error) {
+            console.warn(`GPS Xatolik: ${error.message}`);
+            gpsStatus.textContent = "GPS signali zaif yoki ruxsat berilmagan";
+        }
+
+        // Vaqt formatlash (00:00 ko'rinishida)
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Ekranni yangilash
+        function updateUI() {
+            // Pulni formatlash (Masalan: 47 000)
+            fareDisplay.textContent = Math.round(totalFare).toLocaleString('uz-UZ').replace(/,/g, ' ');
+            distanceDisplay.textContent = `${totalDistance.toFixed(1)} km`;
+            waitDisplay.textContent = formatTime(totalWaitSeconds);
+        }
+    </script>
 </body>
 </html>
