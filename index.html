@@ -2,336 +2,288 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taksometr Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Taksometr Tasvirli</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
         }
         body {
-            background-color: #f5f5f7;
+            background-color: #000;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
-            justify-content: space-between;
+            overflow: hidden;
         }
-        /* Yuqori qism */
-        .header {
-            background-color: #5188b8;
-            color: white;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .header-menu { margin-right: 15px; font-size: 22px; cursor: pointer; }
         
-        /* To'rtburchak rangli tugmalar */
-        .top-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            padding: 10px;
-            background-color: #fff;
-        }
-        .btn-box {
-            height: 60px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-        }
-        .bg-green { background-color: #3b8b3e; }
-        .bg-orange { background-color: #f1a100; }
-        .bg-blue { background-color: #1976d2; }
-        .bg-red { background-color: #d32f2f; }
-
-        /* Manzil qismi */
-        .address-box {
-            background-color: #e0e0e6;
-            margin: 10px;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            color: #666;
+        /* Asosiy konteyner - rasm o'lchamida */
+        .app-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            /* Yuqoridagi rasmni to'g'ridan-to'g'ri fon sifatida ishlatamiz */
+            background-image: url('https://images.uz/api/v1/image/watermarked_img_832690602870483247.png'); 
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* Asosiy Ekran - Katta Raqam */
-        .main-fare {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 85px;
+        /* 1 500 yoki 47 000 yashil raqamlar o'rni */
+        .dynamic-fare {
+            position: absolute;
+            top: 49%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 82px;
             font-weight: 700;
             color: #61a665;
-            background-color: #fafafa;
-        }
-
-        /* Indikatorlar (Oshiqcha yuk, konditsioner va h.k.) */
-        .indicators {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 2px;
-            background-color: #ddd;
-            padding: 2px 10px;
-        }
-        .ind-item {
-            background-color: #e8e8f0;
-            padding: 8px 2px;
+            letter-spacing: -2px;
             text-align: center;
-            font-size: 9px;
-            color: #888;
+            width: 100%;
+            text-shadow: 0 0 2px rgba(255,255,255,0.8);
         }
-        .ind-item span { display: block; font-size: 14px; margin-bottom: 2px; }
 
-        /* Statistika paneli */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            padding: 10px;
-            background-color: #fff;
-        }
-        .stat-card {
-            background-color: #e8e8f0;
-            padding: 10px;
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .stat-val {
-            font-size: 22px;
+        /* Dinamik ma'lumotlar paneli overlay */
+        .stat-overlay {
+            position: absolute;
             font-weight: bold;
             color: #111;
+            font-size: 24px;
+            background-color: #e8e8f0; /* Rasmdagi katakchalar rangi bilan yopish uchun */
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
         }
-        .stat-lbl {
-            font-size: 14px;
-            color: #555;
-        }
+        
+        /* 20 км... yozilgan joy */
+        #speed-val { top: 78.4%; left: 17%; width: 28%; height: 4%; font-size: 23px; }
+        /* 0,0 км (Masofa) */
+        #dist-val { top: 78.4%; left: 70%; width: 25%; height: 4%; font-size: 23px; }
+        /* 00:00... (Kutish vaqti) */
+        #wait-val { top: 84.4%; left: 17%; width: 28%; height: 4%; font-size: 23px; }
 
-        /* Pastki Asosiy Tugma */
-        .action-btn {
+        /* Pastdagi ko'k rangli tugma overlayi */
+        .action-button {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8.5%;
             background-color: #1976d2;
             color: white;
-            border: none;
-            padding: 18px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            width: 100%;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            border: none;
+            outline: none;
         }
-        .action-btn.active {
-            background-color: #d32f2f;
+        .action-button:active {
+            background-color: #1565c0;
+        }
+        .action-button.working {
+            background-color: #d32f2f; /* Yakunlash rejimida qizilga aylanadi */
+        }
+
+        /* Yuklanish (Zagruzka) Effekti */
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            color: white;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loader-text {
+            font-size: 18px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <span class="header-menu">☰</span>
-        <span>Buyurtma holati</span>
-    </div>
+    <div class="app-container">
+        <div class="dynamic-fare" id="fare-text">0</div>
 
-    <div class="top-buttons">
-        <div class="btn-box bg-green">📞</div>
-        <div class="btn-box bg-orange">📍</div>
-        <div class="btn-box bg-blue">⏱</div>
-        <div class="btn-box bg-red">🚫</div>
-    </div>
+        <div class="stat-overlay" id="speed-val">0 км/с</div>
+        <div class="stat-overlay" id="dist-val">0,0 км</div>
+        <div class="stat-overlay" id="wait-val">00:00</div>
 
-    <div class="address-box">
-        <div>Manzil:</div>
-        <strong id="gps-status">GPS kutilmoqda...</strong>
-    </div>
+        <button class="action-button" id="control-btn">Boshlash</button>
 
-    <div class="main-fare" id="fare-display">0</div>
-
-    <div class="indicators">
-        <div class="ind-item"><span>📦</span>Yuk</div>
-        <div class="ind-item"><span>❄️</span>Kond.</div>
-        <div class="ind-item"><span>🧳</span>Yukxona</div>
-        <div class="ind-item"><span>🛞</span>Tom</div>
-        <div class="ind-item"><span>🌧</span>Yomon havo</div>
-        <div class="ind-item"><span>🛒</span>Etkazma</div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-row"><span class="stat-lbl">⚡ Tezlik:</span><span class="stat-val" id="speed">0 km/s</span></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-row"><span class="stat-lbl">🛣 Masofa:</span><span class="stat-val" id="distance">0.0 km</span></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-row"><span class="stat-lbl">⏱ Kutish:</span><span class="stat-val" id="wait-time">00:00</span></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-row"><span class="stat-lbl">🚕 Umumiy:</span><span class="stat-val" id="total-time">00:00</span></div>
+        <div class="loader-overlay" id="loader">
+            <div class="spinner"></div>
+            <div class="loader-text" id="loader-msg">Safar yakunlanmoqda...</div>
         </div>
     </div>
-
-    <button class="action-btn" id="main-toggle-btn">Boshlash</button>
 
     <script>
-        // Tariff sozlamalari
-        const START_FARE = 20000;      // Boshlang'ich narx
-        const PER_KM_FARE = 4000;      // 1 km uchun narx
-        const PER_MIN_WAIT_FARE = 2000;// 1 daqiqa kutish uchun narx
+        // Tarif parametrlari
+        const START_PRICE = 20000; 
+        const KM_PRICE = 4000;     
+        const WAIT_PRICE_PER_MIN = 2000; 
 
-        // O'zgaruvchilar
-        let isRunning = false;
-        let totalFare = 0;
-        let totalDistance = 0; // kilometrda
-        let totalWaitSeconds = 0;
-        let totalSeconds = 0;
+        // Holat o'zgaruvchilari
+        let appState = "STOPPED"; // STOPPED, RUNNING
+        let currentFare = 0;
+        let totalKm = 0;
+        let waitSec = 0;
         
-        let lastPosition = null;
-        let watchId = null;
-        let timerInterval = null;
+        let gpsWatcher = null;
+        let mainTimer = null;
+        let prevCoords = null;
 
-        const mainBtn = document.getElementById('main-toggle-btn');
-        const fareDisplay = document.getElementById('fare-display');
-        const speedDisplay = document.getElementById('speed');
-        const distanceDisplay = document.getElementById('distance');
-        const waitDisplay = document.getElementById('wait-time');
-        const gpsStatus = document.getElementById('gps-status');
+        const controlBtn = document.getElementById('control-btn');
+        const fareText = document.getElementById('fare-text');
+        const speedVal = document.getElementById('speed-val');
+        const distVal = document.getElementById('dist-val');
+        const waitVal = document.getElementById('wait-val');
+        const loader = document.getElementById('loader');
 
-        // Boshlash / Tugatish hodisasi
-        mainBtn.addEventListener('click', () => {
-            if (!isRunning) {
+        // Boshlang'ich ekranni sozlash
+        fareText.textContent = "0";
+
+        controlBtn.addEventListener('click', () => {
+            if (appState === "STOPPED") {
                 startTrip();
-            } else {
-                stopTrip();
+            } else if (appState === "RUNNING") {
+                endTripWithLoader();
             }
         });
 
         function startTrip() {
-            isRunning = true;
-            mainBtn.textContent = "Buurtmani Yakunlash";
-            mainBtn.classList.add('active');
-            
-            // Hisobni dastlabki 20 000 so'm bilan yuklash
-            totalFare = START_FARE;
-            totalDistance = 0;
-            totalWaitSeconds = 0;
-            totalSeconds = 0;
-            lastPosition = null;
-            
-            updateUI();
+            appState = "RUNNING";
+            controlBtn.textContent = "БУЮРТМАНИ ЁПИШ";
+            controlBtn.classList.add('working');
 
-            // GPS kuzatishni boshlash
+            currentFare = START_PRICE;
+            totalKm = 0;
+            waitSec = 0;
+            prevCoords = null;
+            
+            renderUI();
+
+            // GPS yoqish
             if (navigator.geolocation) {
-                watchId = navigator.geolocation.watchPosition(updateLocation, handleGPSError, {
+                gpsWatcher = navigator.geolocation.watchPosition(handleGPS, handleGPSError, {
                     enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 5000
+                    maximumAge: 0
                 });
-                gpsStatus.textContent = "Kuzatuv faol (GPS Yoqilgan)";
-            } else {
-                gpsStatus.textContent = "GPS qurilmangizda ishlamaydi";
             }
 
-            // Har soniyada vaqt va kutishni hisoblovchi taymer
-            timerInterval = setInterval(() => {
-                totalSeconds++;
+            // Sekundomer (Kutish vaqtini hisoblash uchun)
+            mainTimer = setInterval(() => {
+                let currentSpeed = prevCoords && prevCoords.speed ? prevCoords.speed * 3.6 : 0;
                 
-                // Agar tezlik juda past bo'lsa (yoki 0 bo'lsa), uni kutish vaqti deb hisoblaymiz
-                // Bu erda joriy tezlikni tekshiramiz (metr/sekunddan km/soatga o'girilgan)
-                let currentSpeed = lastPosition && lastPosition.coords.speed ? lastPosition.coords.speed * 3.6 : 0;
-                
-                if (currentSpeed < 2) { // 2 km/soatdan past bo'lsa to'xtagan deb hisoblaydi
-                    totalWaitSeconds++;
-                    // Daqiqasiga 2000 so'm -> 1 soniyaga (2000 / 60) so'm qo'shiladi
-                    totalFare += (PER_MIN_WAIT_FARE / 60);
+                if (currentSpeed < 2) { // Agar tezlik 2 km/s dan past bo'lsa kutish hisoblanadi
+                    waitSec++;
+                    currentFare += (WAIT_PRICE_PER_MIN / 60);
                 }
-
-                updateUI();
+                renderUI();
             }, 1000);
         }
 
-        function stopTrip() {
-            isRunning = false;
-            mainBtn.textContent = "Boshlash";
-            mainBtn.classList.remove('active');
-            gpsStatus.textContent = "Kuzatuv to'xtatildi.";
+        // Zagruzka effekti bilan safarni yakunlash
+        function endTripWithLoader() {
+            // GPS va taymerni to'xtatish
+            if (gpsWatcher) navigator.geolocation.clearWatch(gpsWatcher);
+            if (mainTimer) clearInterval(mainTimer);
+
+            // Zagruzkani ko'rsatish
+            loader.style.display = "flex";
             
-            if (watchId) navigator.geolocation.clearWatch(watchId);
-            if (timerInterval) clearInterval(timerInterval);
+            // 3 sekunddan keyin ilovani boshlang'ich holatga qaytarish
+            setTimeout(() => {
+                loader.style.display = "none";
+                appState = "STOPPED";
+                controlBtn.textContent = "Boshlash";
+                controlBtn.classList.remove('working');
+                
+                alert(`Safar yakunlandi!\nUmumiy hisob: ${Math.round(currentFare).toLocaleString('uz-UZ')} so'm`);
+                
+                currentFare = 0;
+                totalKm = 0;
+                waitSec = 0;
+                renderUI();
+                fareText.textContent = "0";
+            }, 3000); // 3000 millisekund = 3 sekund kutish effekti
         }
 
-        // GPS orqali koordinatalar o'zgarganda ishlaydi
-        function updateLocation(position) {
-            if (!isRunning) return;
-
-            const currentCoords = position.coords;
-            // Tezlikni hisoblash (km/soatda)
-            let speedKmH = currentCoords.speed ? currentCoords.speed * 3.6 : 0;
+        function handleGPS(pos) {
+            if (appState !== "RUNNING") return;
+            
+            const coords = pos.coords;
+            let speedKmH = coords.speed ? coords.speed * 3.6 : 0;
             if (speedKmH < 0) speedKmH = 0;
-            speedDisplay.textContent = `${speedKmH.toFixed(1)} km/s`;
+            
+            speedVal.textContent = `${Math.round(speedKmH)} км...`;
 
-            if (lastPosition) {
-                const p1 = lastPosition.coords;
-                const p2 = currentCoords;
+            if (prevCoords) {
+                const distanceDelta = getDistance(prevCoords.latitude, prevCoords.longitude, coords.latitude, coords.longitude);
                 
-                // Ikki nuqta orasidagi masofani hisoblash (Xaverinus formulasi)
-                const distanceDelta = calculateDistance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
-                
-                // Agar tezlik harakatni ko'rsatsa masofani va pulni qo'shamiz
-                if (speedKmH >= 2 && distanceDelta > 0.002) { // kamida 2 metr harakat bo'lishi kerak jalb qilmaslik uchun
-                    totalDistance += distanceDelta;
-                    totalFare += distanceDelta * PER_KM_FARE;
+                if (speedKmH >= 2 && distanceDelta > 0.002) {
+                    totalKm += distanceDelta;
+                    currentFare += distanceDelta * KM_PRICE;
                 }
             }
-
-            lastPosition = position;
-            updateUI();
+            prevCoords = coords;
+            renderUI();
         }
 
-        // Ikki GPS nuqtasi orasidagi aniq masofani hisoblash funksiyasi (Kilometrlarda)
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Er radiusi km
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
         }
 
-        function handleGPSError(error) {
-            console.warn(`GPS Xatolik: ${error.message}`);
-            gpsStatus.textContent = "GPS signali zaif yoki ruxsat berilmagan";
+        function handleGPSError() {
+            speedVal.textContent = "0 км...";
         }
 
-        // Vaqt formatlash (00:00 ko'rinishida)
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        function formatTimer(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}...`;
         }
 
-        // Ekranni yangilash
-        function updateUI() {
-            // Pulni formatlash (Masalan: 47 000)
-            fareDisplay.textContent = Math.round(totalFare).toLocaleString('uz-UZ').replace(/,/g, ' ');
-            distanceDisplay.textContent = `${totalDistance.toFixed(1)} km`;
-            waitDisplay.textContent = formatTime(totalWaitSeconds);
+        function renderUI() {
+            // Yashil rangdagi asosiy hisob (M: 47 000 ko'rinishida oraliq qoldirib yozadi)
+            fareText.textContent = Math.round(currentFare).toLocaleString('uz-UZ').replace(/,/g, ' ');
+            distVal.textContent = `${totalKm.toFixed(1).replace('.', ',')} км`;
+            waitVal.textContent = formatTimer(waitSec);
         }
     </script>
 </body>
