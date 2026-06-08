@@ -73,7 +73,7 @@
             border-radius: 13px;
         }
 
-        /* 2. TOP ACTION BUTTONS */
+        /* 2. TOP ACTION BUTTONS (Suratlar uchun yangilangan qism) */
         .top-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -88,16 +88,17 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .top-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .top-btn:active {
-            opacity: 0.8;
+            opacity: 0.85;
         }
-        .btn-green { background-color: #388e3c; }
-        .btn-orange { background-color: #f5a623; }
-        .btn-blue { background-color: #1976d2; }
-        .btn-red { background-color: #d32f2f; }
-        .top-btn svg { width: 38px; height: 38px; fill: white; }
 
         /* 3. MANZIL PANEL */
         .address-panel {
@@ -239,7 +240,6 @@
 
     <div class="phone-container">
         <div>
-            <!-- Header -->
             <div class="header">
                 <div class="header-left">
                     <div class="menu-icon">
@@ -252,35 +252,21 @@
                 <div class="header-right-toggle"></div>
             </div>
 
-            <!-- Yangilangan 4 ta Asosiy Ikonka (Skrinshot asosida) -->
             <div class="top-grid">
-                <!-- 1. Yashil: Telefon go'shagi va chaqiruv o'qi -->
-                <div class="top-btn btn-green">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M20 15.5c-1.2 0-2.4-.2-3.6-.6-.3-.1-.7 0-1 .2l-2.2 2.2c-2.8-1.4-5.1-3.8-6.6-6.6l2.2-2.2c.3-.3.4-.7.2-1-.3-1.1-.5-2.3-.5-3.5 0-.6-.4-1-1-1H4c-.6 0-1 .4-1 1 0 9.4 7.6 17 17 17 .6 0 1-.4 1-1v-3.5c0-.6-.4-1-1-1zM12 3h10v10h-2V6.4l-6.3 6.3-1.4-1.4L18.6 5H12V3z"/>
-                    </svg>
+                <div class="top-btn">
+                    <img src="data:image/png;base64,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" alt="Call Icon">
                 </div>
-                <!-- 2. Sariq: Nuqtali Lokatsiya Pini -->
-                <div class="top-btn btn-orange">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
+                <div class="top-btn">
+                    <img src="data:image/png;base64,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" alt="Location Icon">
                 </div>
-                <!-- 3. Ko'k: Taksometr Sekundomeri -->
-                <div class="top-btn btn-blue">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M15 1H9v2h6V1zm-3 5c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm1-9h-2v5l4.28 2.57.72-1.21-3.5-2.08V7z"/>
-                    </svg>
+                <div class="top-btn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOAAAADgCAMAAAAt85rTAAAAAFBMVEUAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3yqas9RAAAAGHRSTlMAgDAwoL9vIDBwEICf37+/YGDfwMDAv78QW1nUAAAK90lEQVR42uzYt3IDMRBE0WSZclZgynmU8///ZUdqSdaSqtqVptY89IBy0gGZffwHh/96gVHePxbV5elxcfS8PDv7vX3Z3r3elXdnf8vOorrsbKrzx6P6erwov97uys+P3wX3YfEDsNQC/gvY9S32mfsF0H0XLuCuv9m+vP0LwNscwG07XPsEPcF/cgC3Y/AWrAVfgxsLgffZ2wE3YQLvsbeD78MEnscOfH33FNgOEmR647tGfA8W+LqYwNfvYgV8rRMmDPfGb3gCvusEueuN77ACvksEyfK6fG5CgN5wAnrT66NnBLAbAnvTG6PnBDAbArfQG8P9AHAigNuF3gh6RQA7Arhd7A2jBwAnArgd4g0DdwM4EcDr+N5w7gVwIuC6oTdEvgTguqE3gT8BcAOAm4A+8Vv08xzgDUDXN709vwTgBgA3Db0j+mUAZwZwM9EnfoN+DMBvALgR6AtvWb8EcAbgJqEfg78AnBC4Segv3Ff6VIBTAzcPvQU/DeDEwM1DfwN+FsDJgZuF/p3gJwGcHLhJ6N/RfhLA6YGbhD6BnwfwCcD7gC7onwH8K8DNg/D9fgnwzwDfP4A3/Anwh6AL+m8Anwhc0N8A+GeAmwDhBwB/BvBDEH70wB8DfA/CD/90H+CHEP7wp3sAnwP6w3+6A/BrQH9fP3AfsI+I/gH6wG3A6wH/gI+A/gFrwCvA6wE/gX8N6N8I7gEHAa8AXgXwD+gAnwT07+vLAD4D+AeCgFeALwO8D+At4HmAfg9YAfwK0O8BuwO8D+AtoN8DXgf4JaDfA3YJeBLw9wA94DXgl4B+D3gZ4EnA6wDeAn4J6N8IdgH4G8DfArre3t/f2WvAz+KfeXjAzwH7fV3A/Z1e3zPgLwI/gN8FfBHwE/wX8NHAp/CjwYcCHwYfgw/CHwNfDnwMfDB8JPB+wPsh9vB9AfgS8P0An8GfBj4WwEfwZ8CHAH/AnwV8GHA7wBfAnwf8ecAXAP8VvL65A98C7w7wJ/BXAn8R+CXAb+fO9wfO9wa63o48N8DDAX980+szBzwy8InAJwKfCnxE4A8MvAfwPsAfGHjv4D2A9w7eM3i3f49/rT9shfT9W/3g0PfeAnZ64ztgE/DGr4B1wBu/AtYBb/wKmA1441fAnIDOfN/EwBnoyOhGwCbTf6t64GfA5fof6q7+B8b9EwOfvAnwn/3V2v//+3cIAp+89c1YwOmG+XwBntC/I+Af+CqAhfT/aB7gI0998wbwf56v7f//t2+EAX7idXwLPDwNvsG7wOfvArwAnvDGr4AXwH/UGr8CzsCPwRvwBLwAL8CPwKOfXQdY6W/vAqzyw6sAi/pwaT9uXwVY8cPlwP0Bf9AalD+r8K9H169F9Osvv/znT/XmWwb6o17/ZfCXP/7Ua6b/wZf/Y26An3j1v/9SgP7o6X9w8h/cEvgUvgP8Cj6BL8GfALeCr4D/wMOfg9fArakaMhAAAAAElFTkSuQmCC" alt="Timer Icon">
                 </div>
-                <!-- 4. Qizil: Taqiqlov (Bekor qilish) belgisi -->
-                <div class="top-btn btn-red">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s2.48 10 10 10 10-2.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9l11.21 11.21C15.55 19.37 13.85 20 12 20zm4.31-4.31L5.1 4.48C6.44 3.42 8.14 2.8 12 2.8c4.42 0 8 3.58 8 8 0 3.86-.62 5.56-1.69 6.89z"/>
-                    </svg>
+                <div class="top-btn">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOAAAADgCAMAAAAt85rTAAAAAFBMVEUAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3wAM3yqas9RAAAAGHRSTlMAgDAwoL9vIDBwEICf37+/YGDfwMDAv78QW1nUAAALPUlEQVR42uzYt3IDMRBE0WSZclZgynmU8///ZUdqSdaSqtqVptY89IBy0gGZffwHh/96gVHePxbV5elxcfS8PDv7vX3Z3r3elXdnf8vOorrsbKrzx6P6erwov97uys+P3wX3YfEDsNQC/gvY9S32mfsF0H0XLuCuv9m+vP0LwNscwG07XPsEPcF/cgC3Y/AWrAVfgxsLgffZ2wE3YQLvsbeD78MEnscOfH33FNgOEmR647tGfA8W+LqYwNfvYgV8rRMmDPfGb3gCvusEueuN77ACvksEyfK6fG5CgN5wAnrT66NnBLAbAnvTG6PnBDAbArfQG8P9AHAigNuF3gh6RQA7Arhd7A2jBwAnArgd4g0DdwM4EcDr+N5w7gVwIuC6oTdEvgTguqE3gT8BcAOAm4A+8Vv08xzgDUDXN709vwTgBgA3Db0j+mUAZwZwM9EnfoN+DMBvALgR6AtvWb8EcAbgJqEfg78AnBC4Segv3Ff6VIBTAzcPvQU/DeDEwM1DfwN+FsDJgZuF/p3gJwGcHLhJ6N/RfhLA6YGbhD6BnwfwCcD7gC7onwH8K8DNg/D9fgnwzwDfP4A3/Anwh6AL+m8Anwhc0N8A+GeAmwDhBwB/BvBDEH70wB8DfA/CD/90H+CHEP7wp3sAnwP6w3+6A/BrQH9fP3AfsI+I/gH6wG3A6wH/gI+A/gFrwCvA6wE/gX8N6N8I7gEHAa8AXgXwD+gAnwT07+vLAD4D+AeCgFeALwO8D+At4HmAfg9YAfwK0O8BuwO8D+AtoN8DXgf4JaDfA3YJeBLw9wA94DXgl4B+D3gZ4EnA6wDeAn4J6N8IdgH4G8DfArre3t/f2WvAz+KfeXjAzwH7fV3A/Z1e3zPgLwI/gN8FfBHwE/wX8NHAp/CjwYcCHwYfgw/CHwNfDnwMfDB8JPB+wPsh9vB9AfgS8P0An8GfBj4WwEfwZ8CHAH/AnwV8GHA7wBfAnwf8ecAXAP8VvL65A98C7w7wJ/BXAn8R+CXAb+fO9wfO9wa63o48N8DDAX980+szBzwy8InAJwKfCnxE4A8MvAfwPsAfGHjv4D2A9w7eM3i3f49/rT9shfT9W/3g0PfeAnZ64ztgE/DGr4B1wBu/AtYBb/wKmA1441fAnIDOfN/EwBnoyOhGwCbTf6t64GfA5fof6q7+B8b9EwOfvAnwn/3V2v//+3cIAp+89c1YwOmG+XwBntC/I+Af+CqAhfT/aB7gI0998wbwf56v7f//t2+EAX7idXwLPDwNvsG7wOfvArwAnvDGr4AXwH/UGr8CzsCPwRvwBLwAL8CPwKOfXQdY6W/vAqzyw6sAi/pwaT9uXwVY8cPlwP0Bf9AalD+r8K9H169F9Osvv/znT/XmWwb6o17/ZfCXP/7Ua6b/wZf/Y26An3j1v/9SgP7o6X9w8h/cEvgUvgP8Cj6BL8GfALeCr4D/wMOfg9fAr6qg1FwAAAAElFTkSuQmCC" alt="Cancel Icon">
                 </div>
             </div>
 
-            <!-- Manzil Qismi -->
             <div class="address-panel" id="address-click-area">
                 <div class="address-lbl">Манзил:</div>
                 <div class="address-val" id="address-text">----</div>
@@ -288,13 +274,11 @@
             </div>
         </div>
 
-        <!-- Yashil Katta Pul Ekran -->
         <div class="fare-area">
             <div class="fare-number" id="fare-text">0</div>
         </div>
 
         <div>
-            <!-- 6 talik Xizmatlar Paneli -->
             <div class="options-grid">
                 <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M19 8h-2v3h-3v2h3v3h2v-3h3v-2h-3zM12 8H4c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2zm0 10H4v-6h8v6z"/></svg>Ортиқча юк</div>
                 <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M22 11h-3V8c0-1.1-.9-2-2-2h-3V3c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v3H3c-1.1 0-2 .9-2 2v3h3v10h16V11zm-4 8H6v-6h12v6z"/></svg>Кондиц.</div>
@@ -304,7 +288,6 @@
                 <div class="opt-box"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>Етказма</div>
             </div>
 
-            <!-- Statistika paneli -->
             <div class="stats-container">
                 <div class="stat-box">
                     <div class="stat-icon">
@@ -332,11 +315,9 @@
                 </div>
             </div>
 
-            <!-- Boshlash / Yopish tugmasi -->
             <button class="main-action-btn" id="action-btn">Boshlash</button>
         </div>
 
-        <!-- Zagruzka oynasi -->
         <div class="loader-screen" id="loader-screen">
             <div class="circle-loader"></div>
             <div class="loader-text">Буюртма ёпилмоқда...</div>
@@ -465,6 +446,17 @@
             refreshScreenUI();
         }
 
+        function calculateHaversine(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      box = Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
+        // Haversine ichidagi xatolikni to'g'rilash (box o'rniga a)
         function calculateHaversine(lat1, lon1, lat2, lon2) {
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
