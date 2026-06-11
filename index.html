@@ -2,8 +2,8 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taksometr Pro Exact Fixed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Taksometr Pro Exact APK Mobile</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,6 +11,7 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             user-select: none;
+            -webkit-user-select: none;
         }
         body {
             background-color: #000;
@@ -20,7 +21,7 @@
             height: 100vh;
         }
         
-        /* Asosiy konteyner */
+        /* Asosiy mobil konteyner */
         .phone-container {
             width: 100%;
             max-width: 430px;
@@ -30,7 +31,6 @@
             flex-direction: column;
             justify-content: space-between;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
             overflow: hidden;
         }
 
@@ -73,7 +73,7 @@
             border-radius: 13px;
         }
 
-        /* 2. TOP ACTION BUTTONS (GitHub-ga yuklangan rasmlar uchun toza dizayn) */
+        /* 2. TOP ACTION BUTTONS */
         .top-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -83,7 +83,7 @@
         }
         .top-btn {
             aspect-ratio: 1.15;
-            border-radius: 12px; /* Burchaklarni chiroyli yumshatish */
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -141,8 +141,8 @@
             background-color: #ffffff;
         }
         .fare-number {
-            font-size: 105px;
-            font-weight: 800;
+            font-size: 96px;
+            font-weight: 700;
             color: #61a665;
             letter-spacing: -1px;
         }
@@ -203,7 +203,7 @@
             font-size: 22px;
             font-weight: 500;
             text-align: center;
-            padding: 20px 0;
+            padding: 22px 0;
             border: none;
             outline: none;
             cursor: pointer;
@@ -237,6 +237,8 @@
         }
         .loader-text { font-size: 18px; font-weight: 400; letter-spacing: 0.5px; }
     </style>
+
+    <script src="cordova.js"></script>
 </head>
 <body>
 
@@ -269,7 +271,7 @@
         </div>
 
         <div class="fare-area">
-            <div class="fare-number" id="fare-text">20000</div>
+            <div class="fare-number" id="fare-text">0</div>
         </div>
 
         <div>
@@ -299,7 +301,7 @@
                     <div class="stat-icon">
                         <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
                     </div>
-                    <div class="stat-info"><div class="stat-num" id="wait-display">00:00</div><div class="stat-unit">...</div></div>
+                    <div class="stat-info"><div class="stat-num" id="wait-display">00:00</div><div class="stat-unit">кутиш</div></div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-icon">
@@ -320,18 +322,17 @@
 
     <script>
         const BASE_START_FARE = 20000;
-        const COST_PER_KM = 4500;
-        const COST_PER_MIN_WAIT = 1000;
-        const WAIT_STEP_SECONDS = 20; 
+        const COST_PER_KM = 4000;
+        const COST_PER_MIN_WAIT = 2000;
 
         let status = "IDLE"; 
         let currentFarePrice = 0;
         let driveDistanceKm = 0;
         let waitTimeSeconds = 0;
 
-        let trackingInterval = null;
-        let locationWatcher = null;
-        let startLocation = null;
+        let clockInterval = null;
+        let lastGpsCoords = null;
+        let lastTickTime = Date.now();
 
         const actionBtn = document.getElementById('action-btn');
         const fareText = document.getElementById('fare-text');
@@ -343,7 +344,33 @@
         const addressClickArea = document.getElementById('address-click-area');
         const headerStatusText = document.getElementById('header-status-text');
 
-        // Manzilni o'zgartirish
+        // Mobil qurilma to'liq yuklanganda ishga tushadigan Cordova qismi
+        document.addEventListener('deviceready', onDeviceReady, false);
+
+        function onDeviceReady() {
+            // Ilova ochilganda avvalgi yopilmay qolgan safar bo'lsa tiklash
+            if (localStorage.getItem('taxi_status') === 'ACTIVE') {
+                status = "ACTIVE";
+                actionBtn.textContent = "БУЮРТМАНИ ЁПИШ";
+                headerStatusText.textContent = "Жорий буюртма";
+                
+                currentFarePrice = parseFloat(localStorage.getItem('taxi_fare')) || BASE_START_FARE;
+                driveDistanceKm = parseFloat(localStorage.getItem('taxi_distance')) || 0;
+                waitTimeSeconds = parseInt(localStorage.getItem('taxi_wait')) || 0;
+                lastTickTime = parseInt(localStorage.getItem('taxi_last_tick')) || Date.now();
+
+                // Blokda o'tgan vaqt hisobi
+                let passedSec = Math.floor((Date.now() - lastTickTime) / 1000);
+                if (passedSec > 0) {
+                    waitTimeSeconds += passedSec;
+                    currentFarePrice += (COST_PER_MIN_WAIT / 60) * passedSec;
+                }
+                
+                startBackgroundServices();
+            }
+        }
+
+        // Manzil kiritish
         addressClickArea.addEventListener('click', () => {
             let currentVal = addressText.textContent;
             let newAddress = prompt("Yangi manzilni kiriting:", currentVal === "----" ? "" : currentVal);
@@ -352,7 +379,6 @@
             }
         });
 
-        // Boshlash tugmasi logikasi
         actionBtn.addEventListener('click', () => {
             if (status === "IDLE") {
                 startRideMode();
@@ -369,33 +395,101 @@
             currentFarePrice = BASE_START_FARE;
             driveDistanceKm = 0;
             waitTimeSeconds = 0;
-            startLocation = null;
+            lastTickTime = Date.now();
+            lastGpsCoords = null;
             
-            refreshScreenUI();
+            saveStateToStorage();
+            startBackgroundServices();
+        }
 
-            if (navigator.geolocation) {
-                locationWatcher = navigator.geolocation.watchPosition(processGPSChange, processGPSError, {
-                    enableHighAccuracy: true,
-                    maximumAge: 0
-                });
-            }
+        // APK muhitida fonda ishlash tizimi
+        function startBackgroundServices() {
+            if (clockInterval) clearInterval(clockInterval);
 
-            trackingInterval = setInterval(() => {
-                let currentSpeedKmH = startLocation && startLocation.coords.speed ? startLocation.coords.speed * 3.6 : 0;
+            // 1. Taymer hisobi (Vaqt va kutish uchun)
+            clockInterval = setInterval(() => {
+                let now = Date.now();
+                let deltaSeconds = Math.floor((now - lastTickTime) / 1000);
+                if (deltaSeconds < 1) deltaSeconds = 1;
+
+                let currentSpeed = speedDisplay.textContent ? parseInt(speedDisplay.textContent) : 0;
                 
-                if (currentSpeedKmH < 2) { 
-                    waitTimeSeconds++;
-                    if (waitTimeSeconds % WAIT_STEP_SECONDS === 0) {
-                        currentFarePrice += (COST_PER_MIN_WAIT / 60) * WAIT_STEP_SECONDS;
-                    }
+                if (currentSpeed < 2) { 
+                    waitTimeSeconds += deltaSeconds;
+                    currentFarePrice += (COST_PER_MIN_WAIT / 60) * deltaSeconds;
                 }
+
+                lastTickTime = now;
+                saveStateToStorage();
                 refreshScreenUI();
             }, 1000);
+
+            // 2. APK uchun FONDA GPS TREKING (Background Geolocation CONFIG)
+            if (window.BackgroundGeolocation) {
+                BackgroundGeolocation.configure({
+                    locationProvider: BackgroundGeolocation.ACTIVITY_PROVIDER,
+                    desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
+                    stationaryRadius: 5,
+                    distanceFilter: 5, // Har 5 metr yurganda signal beradi
+                    notificationTitle: 'Taksometr Pro faol',
+                    notificationText: 'Safar masofasi fonda hisoblanmoqda...',
+                    debug: false, 
+                    interval: 2000,
+                    fastestInterval: 1000,
+                    activitiesInterval: 2000
+                });
+
+                BackgroundGeolocation.on('location', function(location) {
+                    // Ekran yopiq bo'lsa ham ushbu funksiya ichi ishlaydi!
+                    handleIncomingLocation(location);
+                });
+
+                BackgroundGeolocation.start();
+            } else {
+                // Agar oddiylikcha brauzerda sinab ko'rilsa (zaxira varianti)
+                navigator.geolocation.watchPosition((p) => handleIncomingLocation(p.coords), null, {
+                    enableHighAccuracy: true
+                });
+            }
+        }
+
+        function handleIncomingLocation(coords) {
+            if (status !== "ACTIVE") return;
+
+            let currentSpeed = coords.speed ? coords.speed * 3.6 : 0;
+            if (currentSpeed < 0) currentSpeed = 0;
+            speedDisplay.textContent = Math.round(currentSpeed);
+
+            if (lastGpsCoords) {
+                const distanceDelta = calculateHaversine(lastGpsCoords.latitude, lastGpsCoords.longitude, coords.latitude, coords.longitude);
+                
+                // Signal to'g'ri va real harakat bo'lsa qo'shadi
+                if (currentSpeed >= 2 && distanceDelta > 0.003) {
+                    driveDistanceKm += distanceDelta;
+                    currentFarePrice += distanceDelta * COST_PER_KM;
+                }
+            }
+            lastGpsCoords = coords;
+            saveStateToStorage();
+            refreshScreenUI();
+        }
+
+        function saveStateToStorage() {
+            if (status === "ACTIVE") {
+                localStorage.setItem('taxi_status', 'ACTIVE');
+                localStorage.setItem('taxi_fare', currentFarePrice);
+                localStorage.setItem('taxi_distance', driveDistanceKm);
+                localStorage.setItem('taxi_wait', waitTimeSeconds);
+                localStorage.setItem('taxi_last_tick', lastTickTime);
+            } else {
+                localStorage.clear();
+            }
         }
 
         function triggerFinishWithLoader() {
-            if (locationWatcher) navigator.geolocation.clearWatch(locationWatcher);
-            if (trackingInterval) clearInterval(trackingInterval);
+            // Fondagi GPS xizmatlarini to'xtatish
+            if (window.BackgroundGeolocation) BackgroundGeolocation.stop();
+            if (clockInterval) clearInterval(clockInterval);
 
             loaderScreen.style.display = "flex";
 
@@ -406,38 +500,18 @@
                 headerStatusText.textContent = "Бажарилди: 9/0/9";
 
                 let finalRoundedPrice = Math.round(currentFarePrice / 100) * 100;
-                alert(`Safar muvaffaqiyatli yakunlandi!\nUmumiy summa: ${finalRoundedPrice.toLocaleString('uz-UZ').replace(/,/g, ' ')} so'm`);
+                alert(`Safar yakunlandi!\nUmumiy summa: ${finalRoundedPrice.toLocaleString('uz-UZ').replace(/,/g, ' ')} so'm`);
                 
                 currentFarePrice = 0;
                 driveDistanceKm = 0;
                 waitTimeSeconds = 0;
-                
+                localStorage.clear();
+
                 fareText.textContent = "0";
                 speedDisplay.textContent = "0";
                 distanceDisplay.textContent = "0,0";
                 waitDisplay.textContent = "00:00";
             }, 3000);
-        }
-
-        function processGPSChange(position) {
-            if (status !== "ACTIVE") return;
-
-            const currentCoords = position.coords;
-            let currentSpeed = currentCoords.speed ? currentCoords.speed * 3.6 : 0;
-            if (currentSpeed < 0) currentSpeed = 0;
-
-            speedDisplay.textContent = Math.round(currentSpeed);
-
-            if (startLocation) {
-                const deltaDistance = calculateHaversine(startLocation.coords.latitude, startLocation.coords.longitude, currentCoords.latitude, currentCoords.longitude);
-                
-                if (currentSpeed >= 2 && deltaDistance > 0.002) {
-                    driveDistanceKm += deltaDistance;
-                    currentFarePrice += deltaDistance * COST_PER_KM;
-                }
-            }
-            startLocation = position;
-            refreshScreenUI();
         }
 
         function calculateHaversine(lat1, lon1, lat2, lon2) {
@@ -448,10 +522,6 @@
                       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                       Math.sin(dLon/2) * Math.sin(dLon/2);
             return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-        }
-
-        function processGPSError() { 
-            speedDisplay.textContent = "0"; 
         }
 
         function convertToMinSec(seconds) {
