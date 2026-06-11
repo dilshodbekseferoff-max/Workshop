@@ -73,7 +73,7 @@
             border-radius: 13px;
         }
 
-        /* 2. TOP ACTION BUTTONS (GitHub-ga yuklangan rasmlar uchun toza dizayn) */
+        /* 2. TOP ACTION BUTTONS */
         .top-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -83,7 +83,7 @@
         }
         .top-btn {
             aspect-ratio: 1.15;
-            border-radius: 12px; /* Burchaklarni chiroyli yumshatish */
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -321,7 +321,7 @@
     <script>
         const BASE_START_FARE = 20000;
         const COST_PER_KM = 4000;
-        const COST_PER_MIN_WAIT = 1000;
+        const COST_PER_MIN_WAIT = 1000; 
         const WAIT_STEP_SECONDS = 20; 
 
         let status = "IDLE"; 
@@ -332,6 +332,10 @@
         let trackingInterval = null;
         let locationWatcher = null;
         let startLocation = null;
+        
+        // Ekran bloklanganda aniq vaqtni yo'qotmaslik uchun yangi o'zgaruvchilar
+        let startTimeStamp = 0;
+        let lastWaitCalculatedSeconds = 0;
 
         const actionBtn = document.getElementById('action-btn');
         const fareText = document.getElementById('fare-text');
@@ -369,24 +373,35 @@
             currentFarePrice = BASE_START_FARE;
             driveDistanceKm = 0;
             waitTimeSeconds = 0;
+            lastWaitCalculatedSeconds = 0;
             startLocation = null;
+            startTimeStamp = Date.now(); // Haqiqiy boshlanish vaqti
             
             refreshScreenUI();
 
+            // Web2App fon rejimida barqaror ishlashi uchun maximumAge: 0 va doimiy kuzatuv
             if (navigator.geolocation) {
                 locationWatcher = navigator.geolocation.watchPosition(processGPSChange, processGPSError, {
                     enableHighAccuracy: true,
-                    maximumAge: 0
+                    maximumAge: 0,
+                    timeout: 3000
                 });
             }
 
+            // Vaqtni hisoblash tizimi
             trackingInterval = setInterval(() => {
                 let currentSpeedKmH = startLocation && startLocation.coords.speed ? startLocation.coords.speed * 3.6 : 0;
                 
                 if (currentSpeedKmH < 2) { 
-                    waitTimeSeconds++;
-                    if (waitTimeSeconds % WAIT_STEP_SECONDS === 0) {
-                        currentFarePrice += (COST_PER_MIN_WAIT / 60) * WAIT_STEP_SECONDS;
+                    // Tizim sekundini real vaqt farqi (Timestamp) orqali hisoblaymiz
+                    let totalElapsedSeconds = Math.floor((Date.now() - startTimeStamp) / 1000);
+                    waitTimeSeconds = totalElapsedSeconds; 
+
+                    let uncalculatedSeconds = waitTimeSeconds - lastWaitCalculatedSeconds;
+                    if (uncalculatedSeconds >= WAIT_STEP_SECONDS) {
+                        let steps = Math.floor(uncalculatedSeconds / WAIT_STEP_SECONDS);
+                        currentFarePrice += (COST_PER_MIN_WAIT / 60) * (steps * WAIT_STEP_SECONDS);
+                        lastWaitCalculatedSeconds += steps * WAIT_STEP_SECONDS;
                     }
                 }
                 refreshScreenUI();
@@ -411,8 +426,9 @@
                 currentFarePrice = 0;
                 driveDistanceKm = 0;
                 waitTimeSeconds = 0;
+                lastWaitCalculatedSeconds = 0;
                 
-                fareText.textContent = "0";
+                fareText.textContent = "20 000";
                 speedDisplay.textContent = "0";
                 distanceDisplay.textContent = "0,0";
                 waitDisplay.textContent = "00:00";
@@ -431,6 +447,7 @@
             if (startLocation) {
                 const deltaDistance = calculateHaversine(startLocation.coords.latitude, startLocation.coords.longitude, currentCoords.latitude, currentCoords.longitude);
                 
+                // Joyida turgandagi GPS tebranishlarini hisobga olmaslik (filtrlash)
                 if (currentSpeed >= 2 && deltaDistance > 0.002) {
                     driveDistanceKm += deltaDistance;
                     currentFarePrice += deltaDistance * COST_PER_KM;
