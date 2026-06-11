@@ -300,7 +300,7 @@
                     <div class="stat-icon">
                         <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
                     </div>
-                    <div class="stat-info"><div class="stat-num" id="wait-display">00:00</div><div class="stat-unit" id="wait-unit-text">кутиш</div></div>
+                    <div class="stat-info"><div class="stat-num" id="wait-display">00:00</div><div class="stat-unit">кутиш</div></div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-icon">
@@ -322,17 +322,19 @@
     <script>
         const BASE_START_FARE = 20000;
         const COST_PER_KM = 4000;
-        const COST_PER_MIN_WAIT = 1000; // 1000 so'm holatida qoldi
+        const COST_PER_MIN_WAIT = 1000; 
         const WAIT_STEP_SECONDS = 20; 
-        const FREE_WAIT_THRESHOLD = 90; // 1.5 daqiqa bepul kutish (soniyada)
+        const FREE_WAIT_MAX = 60; // Bepul kutish vaqti 60 soniya qilib belgilandi
+        const MEMORY_DRIVE_MAX = 120; // 2 daqiqa harakatlanish xotirasi (soniyada)
 
         let status = "IDLE"; 
         let currentFarePrice = 0;
         let driveDistanceKm = 0;
         
-        // Yangi mustaqil vaqt o'zgaruvchilari
-        let paidWaitTimeSeconds = 0; // Faqat pullik hisoblangan sof kutish soniyalari
-        let currentIdleSeconds = 0;  // Mashina ayni to'xtab turgan vaqtdagi soniyalar (filtr uchun)
+        let paidWaitTimeSeconds = 0; // Ekrandagi sof pullik kutish vaqti
+        let freeWaitCounter = 0;     // Orqa fondagi joriy bepul kutish sekundlari
+
+        let driveDurationSeconds = 0; // Harakatlanish davom etayotgan vaqt hisoblagichi
 
         let trackingInterval = null;
         let locationWatcher = null;
@@ -343,13 +345,11 @@
         const speedDisplay = document.getElementById('speed-display');
         const distanceDisplay = document.getElementById('distance-display');
         const waitDisplay = document.getElementById('wait-display');
-        const waitUnitText = document.getElementById('wait-unit-text');
         const loaderScreen = document.getElementById('loader-screen');
         const addressText = document.getElementById('address-text');
         const addressClickArea = document.getElementById('address-click-area');
         const headerStatusText = document.getElementById('header-status-text');
 
-        // Cordova tizimi yuklanganda fon rejimini faollashtirish
         document.addEventListener('deviceready', () => {
             if (window.cordova && cordova.plugins && cordova.plugins.backgroundMode) {
                 cordova.plugins.backgroundMode.enable();
@@ -364,7 +364,6 @@
             }
         }, false);
 
-        // Manzilni o'zgartirish
         addressClickArea.addEventListener('click', () => {
             let currentVal = addressText.textContent;
             let newAddress = prompt("Yangi manzilni kiriting:", currentVal === "----" ? "" : currentVal);
@@ -373,7 +372,6 @@
             }
         });
 
-        // Boshlash tugmasi logikasi
         actionBtn.addEventListener('click', () => {
             if (status === "IDLE") {
                 startRideMode();
@@ -390,7 +388,8 @@
             currentFarePrice = BASE_START_FARE;
             driveDistanceKm = 0;
             paidWaitTimeSeconds = 0;
-            currentIdleSeconds = 0;
+            freeWaitCounter = 0;
+            driveDurationSeconds = 0;
             startLocation = null;
             
             refreshScreenUI();
@@ -403,37 +402,39 @@
                 });
             }
 
-            // Har 1 soniyada ishlaydigan mustaqil vaqt mantig'i
+            // Mustaqil 1 soniyalik mantiqiy hisoblagich motori
             trackingInterval = setInterval(() => {
                 let currentSpeedKmH = startLocation && startLocation.coords.speed ? startLocation.coords.speed * 3.6 : 0;
                 if (currentSpeedKmH < 0 || isNaN(currentSpeedKmH)) currentSpeedKmH = 0;
                 
-                if (currentSpeedKmH < 2) { 
-                    // Mashina to'xtab turibdi
-                    currentIdleSeconds++;
+                if (currentSpeedKmH < 3) { 
+                    // Mashina to'xtab turibdi (Tezlik 3 km/s dan past)
+                    driveDurationSeconds = 0; // To'xtagan zahoti harakat taymeri nolga tushadi
 
-                    if (currentIdleSeconds > FREE_WAIT_THRESHOLD) {
-                        // 1.5 daqiqadan o'tdi -> Pullik kutish vaqti hisoblanadi
+                    if (freeWaitCounter < FREE_WAIT_MAX) {
+                        // Bepul 60 soniyalik kutish orqa fonda ketyapti
+                        freeWaitCounter++;
+                        waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); // Ekranda 00:00 holatida turadi
+                    } else {
+                        // 60 soniya tugadi -> Pullik kutish boshlandi
                         paidWaitTimeSeconds++;
-                        waitUnitText.textContent = "кутиш";
-                        waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds);
+                        waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); // Ekranda soniyalar yugurishni boshlaydi
 
-                        // Har 20 soniyada hisobga pul qo'shish
-                        let activeOverTime = currentIdleSeconds - FREE_WAIT_THRESHOLD;
-                        if (activeOverTime % WAIT_STEP_SECONDS === 0) {
+                        let activePaidTime = freeWaitCounter + paidWaitTimeSeconds - FREE_WAIT_MAX;
+                        if (activePaidTime % WAIT_STEP_SECONDS === 0) {
                             currentFarePrice += (COST_PER_MIN_WAIT / 60) * WAIT_STEP_SECONDS;
                         }
-                    } else {
-                        // 1.5 daqiqagacha bo'lgan oraliq (Svetofor filtri)
-                        waitUnitText.textContent = "кутиш (ф)";
-                        let remainingFree = FREE_WAIT_THRESHOLD - currentIdleSeconds;
-                        waitDisplay.textContent = convertToMinSec(remainingFree);
                     }
                 } else {
-                    // Mashina yuryapti -> Kutish filtri muzlaydi!
-                    currentIdleSeconds = 0; 
-                    waitUnitText.textContent = "кутиш";
-                    waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds);
+                    // Mashina harakatlanyapti (Tezlik 3 km/s yoki undan yuqori)
+                    driveDurationSeconds++;
+
+                    // Agar harakatlanish uzluksiz 2 daqiqa (120 soniya) dan oshsa, bepul taymerni butunlay yangilaymiz
+                    if (driveDurationSeconds > MEMORY_DRIVE_MAX) {
+                        freeWaitCounter = 0; 
+                    }
+                    
+                    waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); // Taymer muzlatilgan holatda ko'rinadi
                 }
                 
                 refreshScreenUI();
@@ -458,13 +459,13 @@
                 currentFarePrice = 0;
                 driveDistanceKm = 0;
                 paidWaitTimeSeconds = 0;
-                currentIdleSeconds = 0;
+                freeWaitCounter = 0;
+                driveDurationSeconds = 0;
                 
                 fareText.textContent = "20 000"; 
                 speedDisplay.textContent = "0";
                 distanceDisplay.textContent = "0,0";
                 waitDisplay.textContent = "00:00";
-                waitUnitText.textContent = "кутиш";
             }, 3000);
         }
 
@@ -480,7 +481,8 @@
             if (startLocation) {
                 const deltaDistance = calculateHaversine(startLocation.coords.latitude, startLocation.coords.longitude, currentCoords.latitude, currentCoords.longitude);
                 
-                if (currentSpeed >= 2 && deltaDistance > 0.002) {
+                // Tezlik 3 yoki undan yuqori bo'lgandagina masofa va yo'l puli hisoblanadi
+                if (currentSpeed >= 3 && deltaDistance > 0.002) {
                     driveDistanceKm += deltaDistance;
                     currentFarePrice += deltaDistance * COST_PER_KM;
                 }
