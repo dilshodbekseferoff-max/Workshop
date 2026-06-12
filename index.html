@@ -324,17 +324,16 @@
         const COST_PER_KM = 4000;
         const COST_PER_MIN_WAIT = 1000; 
         const WAIT_STEP_SECONDS = 20; 
-        const FREE_WAIT_MAX = 60; // Bepul kutish vaqti 60 soniya qilib belgilandi
-        const MEMORY_DRIVE_MAX = 120; // 2 daqiqa harakatlanish xotirasi (soniyada)
+        const FREE_WAIT_MAX = 60; 
+        const MEMORY_DRIVE_MAX = 120; 
 
         let status = "IDLE"; 
         let currentFarePrice = 0;
         let driveDistanceKm = 0;
         
-        let paidWaitTimeSeconds = 0; // Ekrandagi sof pullik kutish vaqti
-        let freeWaitCounter = 0;     // Orqa fondagi joriy bepul kutish sekundlari
-
-        let driveDurationSeconds = 0; // Harakatlanish davom etayotgan vaqt hisoblagichi
+        let paidWaitTimeSeconds = 0; 
+        let freeWaitCounter = 0;     
+        let driveDurationSeconds = 0; 
 
         let trackingInterval = null;
         let locationWatcher = null;
@@ -372,11 +371,17 @@
             }
         });
 
+        // Boshlash/Tugatish tugmasi logikasi
         actionBtn.addEventListener('click', () => {
             if (status === "IDLE") {
                 startRideMode();
             } else if (status === "ACTIVE") {
-                triggerFinishWithLoader();
+                // Yangi qo'shilgan tasdiqlash so'rovi (Ha/Yo'q oynasi)
+                let confirmClose = confirm("Buyurtmani yakunlamoqchimisiz?");
+                if (confirmClose) {
+                    triggerFinishWithLoader();
+                }
+                // Agar Yo'q (Cancel) bosilsa, hech narsa sodir bo'lmaydi va hisoblagich ishlayveradi
             }
         });
 
@@ -402,23 +407,19 @@
                 });
             }
 
-            // Mustaqil 1 soniyalik mantiqiy hisoblagich motori
             trackingInterval = setInterval(() => {
                 let currentSpeedKmH = startLocation && startLocation.coords.speed ? startLocation.coords.speed * 3.6 : 0;
                 if (currentSpeedKmH < 0 || isNaN(currentSpeedKmH)) currentSpeedKmH = 0;
                 
                 if (currentSpeedKmH < 3) { 
-                    // Mashina to'xtab turibdi (Tezlik 3 km/s dan past)
-                    driveDurationSeconds = 0; // To'xtagan zahoti harakat taymeri nolga tushadi
+                    driveDurationSeconds = 0; 
 
                     if (freeWaitCounter < FREE_WAIT_MAX) {
-                        // Bepul 60 soniyalik kutish orqa fonda ketyapti
                         freeWaitCounter++;
-                        waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); // Ekranda 00:00 holatida turadi
+                        waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); 
                     } else {
-                        // 60 soniya tugadi -> Pullik kutish boshlandi
                         paidWaitTimeSeconds++;
-                        waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); // Ekranda soniyalar yugurishni boshlaydi
+                        waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); 
 
                         let activePaidTime = freeWaitCounter + paidWaitTimeSeconds - FREE_WAIT_MAX;
                         if (activePaidTime % WAIT_STEP_SECONDS === 0) {
@@ -426,15 +427,13 @@
                         }
                     }
                 } else {
-                    // Mashina harakatlanyapti (Tezlik 3 km/s yoki undan yuqori)
                     driveDurationSeconds++;
 
-                    // Agar harakatlanish uzluksiz 2 daqiqa (120 soniya) dan oshsa, bepul taymerni butunlay yangilaymiz
                     if (driveDurationSeconds > MEMORY_DRIVE_MAX) {
                         freeWaitCounter = 0; 
                     }
                     
-                    waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); // Taymer muzlatilgan holatda ko'rinadi
+                    waitDisplay.textContent = convertToMinSec(paidWaitTimeSeconds); 
                 }
                 
                 refreshScreenUI();
@@ -481,7 +480,6 @@
             if (startLocation) {
                 const deltaDistance = calculateHaversine(startLocation.coords.latitude, startLocation.coords.longitude, currentCoords.latitude, currentCoords.longitude);
                 
-                // Tezlik 3 yoki undan yuqori bo'lgandagina masofa va yo'l puli hisoblanadi
                 if (currentSpeed >= 3 && deltaDistance > 0.002) {
                     driveDistanceKm += deltaDistance;
                     currentFarePrice += deltaDistance * COST_PER_KM;
